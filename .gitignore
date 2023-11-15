@@ -1,0 +1,12 @@
+# Dependencies
+release/
+vendor/
+
+# IDE
+.DS_Store
+.idea/
+.run/
+.vscode/
+
+# Test binary, build with `go test -c`
+*.test

@@ -1,0 +1,15 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax="proto3";
+
+option go_package = "./types";
+
+package blockchain;
+
+message DeviceAuthenticationRequest {
+    bytes device_id = 1;
+    bytes cluster_head_id = 2;
+    bytes signature = 3;
+}

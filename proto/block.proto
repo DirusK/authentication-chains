@@ -1,0 +1,19 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "./types";
+
+import "dar.proto";
+
+package blockchain;
+
+message Block {
+    bytes hash = 1;
+    bytes prev_hash = 2;
+    uint64 index = 3;
+    DeviceAuthenticationRequest dar = 4;
+    int64 timestamp = 5;
+}

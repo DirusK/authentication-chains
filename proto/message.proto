@@ -1,0 +1,22 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax="proto3";
+
+option go_package = "./types";
+
+package blockchain;
+
+// Message is the message which is sent between devices.
+message Message {
+    bytes sender_id = 1;
+    bytes receiver_id = 2;
+    bytes data = 3;
+}
+
+// Content is the part of message which is encrypted.
+message Content {
+    bytes text = 1;
+    bytes block_hash = 2;
+}
