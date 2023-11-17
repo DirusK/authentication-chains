@@ -10,22 +10,17 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
+	"crypto/x509"
 	"encoding/gob"
+	"encoding/pem"
 )
 
 //go:generate ifacemaker -f cipher.go -s cipher -p cipher -i Cipher -y "Cipher - describe an interface for working with crypto operations."
 
-const (
-	// bytes512 is 4096 bits
-	bytes512 = 4096
-	// bytes256 is 2048 bits
-	bytes256 = 2048
-)
-
 // cipher is an implementation of the Cipher interface
 type cipher struct {
-	PrivateKey *rsa.PrivateKey
-	PublicKey  *rsa.PublicKey
+	privateKey *rsa.PrivateKey
+	publicKey  *rsa.PublicKey
 }
 
 func New() Cipher {
@@ -36,14 +31,48 @@ func New() Cipher {
 	}
 
 	return cipher{
-		PrivateKey: privateKey,
-		PublicKey:  &privateKey.PublicKey,
+		privateKey: privateKey,
+		publicKey:  &privateKey.PublicKey,
 	}
+}
+
+// PublicKey returns the public rsa key.
+func (c cipher) PublicKey() *rsa.PublicKey {
+	return c.publicKey
+}
+
+// SerializePublicKey serializes the public key.
+func (c cipher) SerializePublicKey() []byte {
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(c.publicKey)
+
+	b := pem.Block{
+		Type:  typeRSAPublicKey,
+		Bytes: publicKeyBytes,
+	}
+
+	return pem.EncodeToMemory(&b)
+}
+
+// SerializePrivateKey serializes the private key.
+func (c cipher) SerializePrivateKey() []byte {
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(c.privateKey)
+
+	b := pem.Block{
+		Type:  typeRSAPrivateKey,
+		Bytes: privateKeyBytes,
+	}
+
+	return pem.EncodeToMemory(&b)
+}
+
+// PrivateKey returns the private rsa key.
+func (c cipher) PrivateKey() *rsa.PrivateKey {
+	return c.privateKey
 }
 
 // Encrypt encrypts the given plain text using the public key.
 func (c cipher) Encrypt(plainText []byte) ([]byte, error) {
-	cipherText, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, c.PublicKey, plainText, nil)
+	cipherText, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, c.publicKey, plainText, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +82,7 @@ func (c cipher) Encrypt(plainText []byte) ([]byte, error) {
 
 // Decrypt decrypts the given cipher text using the private key.
 func (c cipher) Decrypt(cipherText []byte) ([]byte, error) {
-	plainText, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, c.PrivateKey, cipherText, nil)
+	plainText, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, c.privateKey, cipherText, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -63,67 +92,28 @@ func (c cipher) Decrypt(cipherText []byte) ([]byte, error) {
 
 // Sign signs the given data using the private key.
 func (c cipher) Sign(data []byte) ([]byte, error) {
-	// Before signing, we need to hash our message
-	// The hash is what we actually sign
-	msgHash := sha256.New()
-	if _, err := msgHash.Write(data); err != nil {
-		return nil, err
-	}
-
 	// In order to generate the signature, we provide a random number generator,
 	// our private key, the hashing algorithm that we used, and the hash sum
 	// of our message
-	signature, err := rsa.SignPSS(rand.Reader, c.PrivateKey, crypto.SHA256, msgHash.Sum(nil), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return signature, nil
+	return rsa.SignPSS(rand.Reader, c.privateKey, crypto.SHA256, Hash(data), nil)
 }
 
-// Verify verifies the given signature against the given data using the public key.
-func (c cipher) Verify(signature []byte, data []byte) error {
-	// Before verifying the signature, we need to hash our message
-	// The hash is what we actually verify
-	msgHash := sha256.New()
-	if _, err := msgHash.Write(data); err != nil {
-		return err
-	}
-
+// VerifySignature verifies the given signature against the given data using the public key.
+func (c cipher) VerifySignature(signature []byte, data []byte) error {
 	// To verify the signature, we provide the public key, the hashing algorithm
 	// the hash sum of our message and the signature we generated previously
 	// there is an optional "options" parameter which can omit for now
-	if err := rsa.VerifyPSS(c.PublicKey, crypto.SHA256, msgHash.Sum(nil), signature, nil); err != nil {
-		return err
-	}
-
-	return nil
+	return rsa.VerifyPSS(c.publicKey, crypto.SHA256, Hash(data), signature, nil)
 }
 
-func (c cipher) GobEncode() ([]byte, error) {
-	w := new(bytes.Buffer)
-	encoder := gob.NewEncoder(w)
+// Serialize serializes the Cipher into bytes.
+func (c cipher) Serialize() []byte {
+	buffer := new(bytes.Buffer)
+	encoder := gob.NewEncoder(buffer)
 
-	if err := encoder.Encode(c.PrivateKey); err != nil {
-		return nil, err
-	}
-	if err := encoder.Encode(c.PublicKey); err != nil {
-		return nil, err
+	if err := encoder.Encode(c); err != nil {
+		panic("cipher serialization error: " + err.Error())
 	}
 
-	return w.Bytes(), nil
-}
-
-func (c cipher) GobDecode(buf []byte) error {
-	r := bytes.NewBuffer(buf)
-	decoder := gob.NewDecoder(r)
-
-	if err := decoder.Decode(&c.PrivateKey); err != nil {
-		return err
-	}
-	if err := decoder.Decode(&c.PublicKey); err != nil {
-		return err
-	}
-
-	return nil
+	return buffer.Bytes()
 }
