@@ -15,12 +15,6 @@ import (
 
 //go:generate ifacemaker -f blockchain.go -s blockchain -p blockchain -i Blockchain -y "Blockchain - describe an interface for working with blockchain."
 
-// infinityTTL is the value of the infinite TTL.
-const infinityTTL = 0
-
-// bucketBlocks is the name of the bucket that will store our blocks
-const bucketBlocks = "blocks"
-
 // blockchain implements chain logic.
 type blockchain struct {
 	lastBlock *types.Block
@@ -32,7 +26,7 @@ func New(db *nutsdb.DB) (Blockchain, error) {
 	var lastBlock *types.Block
 
 	if err := db.View(func(tx *nutsdb.Tx) error {
-		iterator := nutsdb.NewIterator(tx, bucketBlocks, nutsdb.IteratorOptions{Reverse: true})
+		iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: true})
 
 		data, err := iterator.Value()
 		if err != nil {
@@ -56,7 +50,7 @@ func New(db *nutsdb.DB) (Blockchain, error) {
 func (b *blockchain) AddBlock(block *types.Block) error {
 	if err := b.db.Update(func(tx *nutsdb.Tx) error {
 		if b.lastBlock != nil {
-			data, _ := tx.Get(bucketBlocks, block.Hash)
+			data, _ := tx.Get(types.BucketBlocks, block.Hash)
 			if data != nil {
 				return fmt.Errorf("%w: block %x: already exists", ErrBlockValidation, block.Hash)
 			}
@@ -70,7 +64,7 @@ func (b *blockchain) AddBlock(block *types.Block) error {
 			}
 		}
 
-		if err := tx.Put(bucketBlocks, block.Hash, block.Serialize(), infinityTTL); err != nil {
+		if err := tx.Put(types.BucketBlocks, block.Hash, block.Serialize(), types.InfinityTTL); err != nil {
 			return err
 		}
 
@@ -89,7 +83,7 @@ func (b *blockchain) GetBlock(hash []byte) (*types.Block, error) {
 	var block *types.Block
 
 	if err := b.db.View(func(tx *nutsdb.Tx) error {
-		entry, err := tx.Get(bucketBlocks, hash)
+		entry, err := tx.Get(types.BucketBlocks, hash)
 		if err != nil {
 			return err
 		}
@@ -112,15 +106,15 @@ func (b *blockchain) GetAllBlocks(offset, limit int, reverse bool) ([]*types.Blo
 	)
 
 	if err := b.db.View(func(tx *nutsdb.Tx) error {
-		iterator := nutsdb.NewIterator(tx, bucketBlocks, nutsdb.IteratorOptions{Reverse: reverse})
+		iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: reverse})
 
 		for {
-			data, err := iterator.Value()
-			if err != nil {
-				return err
-			}
-
 			if skip >= offset {
+				data, err := iterator.Value()
+				if err != nil {
+					return err
+				}
+
 				blocks = append(blocks, types.DeserializeBlock(data))
 			} else {
 				skip++
@@ -148,13 +142,13 @@ func (b *blockchain) GetLastBlock() *types.Block {
 func (b *blockchain) DeleteLastBlock() error {
 	if err := b.db.Update(func(tx *nutsdb.Tx) error {
 		if b.lastBlock != nil {
-			if err := tx.Delete(bucketBlocks, b.lastBlock.Hash); err != nil {
+			if err := tx.Delete(types.BucketBlocks, b.lastBlock.Hash); err != nil {
 				return err
 			}
 
 			b.lastBlock = nil
 
-			iterator := nutsdb.NewIterator(tx, bucketBlocks, nutsdb.IteratorOptions{Reverse: true})
+			iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: true})
 
 			data, err := iterator.Value()
 			if err != nil {

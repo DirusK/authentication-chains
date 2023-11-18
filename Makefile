@@ -7,7 +7,7 @@ PROTO_FILES = $(shell find ./proto -name '*.proto')
 all: build
 
 proto: $(PROTO_FILES)
-	protoc -I=./proto --go_out=. ./proto/*.proto
+	protoc -I=proto --go-opt=paths=source-relative --go-grpc-opt=paths=source-relative --go_out=. -go_grpc_out=. ./proto/*.proto
 
 build: proto $(GO_FILES)
 	go build -o $(BIN_NAME) main.go
@@ -18,3 +18,6 @@ clean:
 
 test:
 	go test ./...
+
+run:
+	go run main.go
