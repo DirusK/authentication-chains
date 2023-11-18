@@ -13,9 +13,27 @@ import (
 	"crypto/x509"
 	"encoding/gob"
 	"encoding/pem"
+	"fmt"
+
+	"google.golang.org/protobuf/proto"
+
+	"authentication-chains/types"
 )
 
 //go:generate ifacemaker -f cipher.go -s cipher -p cipher -i Cipher -y "Cipher - describe an interface for working with crypto operations."
+
+const (
+	// bytes512 is 4096 bits
+	bytes512 = 4096
+	// bytes256 is 2048 bits
+	bytes256 = 2048
+)
+
+// Types for PEM encoding
+const (
+	typeRSAPublicKey  = "RSA PUBLIC KEY"
+	typeRSAPrivateKey = "RSA PRIVATE KEY"
+)
 
 // cipher is an implementation of the Cipher interface
 type cipher struct {
@@ -116,4 +134,29 @@ func (c cipher) Serialize() []byte {
 	}
 
 	return buffer.Bytes()
+}
+
+// SignDar signs the given DeviceAuthenticationRequest.
+func (c cipher) SignDar(dar *types.DeviceAuthenticationRequest) error {
+	data, err := proto.Marshal(dar)
+	if err != nil {
+		return fmt.Errorf("failed to marshal dar: %w", err)
+	}
+
+	dar.Signature, err = c.Sign(data)
+	if err != nil {
+		return fmt.Errorf("failed to sign dar: %w", err)
+	}
+
+	return nil
+}
+
+// EncryptContent encrypts the given Content.
+func (c cipher) EncryptContent(content *types.Content) ([]byte, error) {
+	data, err := proto.Marshal(content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal content: %w", err)
+	}
+
+	return c.Encrypt(data)
 }

@@ -4,6 +4,8 @@
 
 package blockchain
 
-type Config struct {
-	DirectoryDB string
-}
+import (
+	"errors"
+)
+
+var ErrBlockValidation = errors.New("block validation failed")

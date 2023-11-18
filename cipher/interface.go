@@ -6,6 +6,8 @@ package cipher
 
 import (
 	"crypto/rsa"
+
+	"authentication-chains/types"
 )
 
 // Cipher - describe an interface for working with crypto operations.
@@ -28,4 +30,8 @@ type Cipher interface {
 	VerifySignature(signature []byte, data []byte) error
 	// Serialize serializes the Cipher into bytes.
 	Serialize() []byte
+	// SignDar signs the given DeviceAuthenticationRequest.
+	SignDar(dar *types.DeviceAuthenticationRequest) error
+	// EncryptContent encrypts the given Content.
+	EncryptContent(content *types.Content) ([]byte, error)
 }

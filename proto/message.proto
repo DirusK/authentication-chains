@@ -13,11 +13,10 @@ message Message {
     bytes sender_id = 1;
     bytes receiver_id = 2;
     bytes data = 3;
-    Content content = 4;
 }
 
 // Content is the part of message which is encrypted.
 message Content {
-    bytes text = 1;
+    bytes data = 1;
     bytes block_hash = 2;
 }
