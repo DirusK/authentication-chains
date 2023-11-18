@@ -12,10 +12,10 @@ import (
 type Blockchain interface {
 	// AddBlock adds a block to the chain.
 	AddBlock(block *types.Block) error
-	// GetBlock returns a block by hash.
-	GetBlock(hash []byte) (*types.Block, error)
+	// GetBlock returns a block by index.
+	GetBlock(index uint64) (*types.Block, error)
 	// GetAllBlocks returns all blocks from the chain with pagination.
-	GetAllBlocks(offset, limit int, reverse bool) ([]*types.Block, error)
+	GetAllBlocks(from, to uint64) ([]*types.Block, error)
 	// GetLastBlock returns the last block of the chain.
 	GetLastBlock() *types.Block
 	// DeleteLastBlock deletes the last block from the chain.

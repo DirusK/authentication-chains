@@ -50,13 +50,13 @@ func New(db *nutsdb.DB) (Blockchain, error) {
 func (b *blockchain) AddBlock(block *types.Block) error {
 	if err := b.db.Update(func(tx *nutsdb.Tx) error {
 		if b.lastBlock != nil {
-			data, _ := tx.Get(types.BucketBlocks, block.Hash)
-			if data != nil {
-				return fmt.Errorf("%w: block %x: already exists", ErrBlockValidation, block.Hash)
-			}
-
 			if block.Index != b.lastBlock.Index+1 {
 				return fmt.Errorf("%w: block %x: index is not valid", ErrBlockValidation, block.Hash)
+			}
+
+			data, _ := tx.Get(types.BucketBlocks, uint64ToBytes(block.Index))
+			if data != nil {
+				return fmt.Errorf("%w: block %x: already exists", ErrBlockValidation, block.Hash)
 			}
 
 			if !bytes.Equal(block.PrevHash, b.lastBlock.Hash) {
@@ -78,12 +78,12 @@ func (b *blockchain) AddBlock(block *types.Block) error {
 	return nil
 }
 
-// GetBlock returns a block by hash.
-func (b *blockchain) GetBlock(hash []byte) (*types.Block, error) {
+// GetBlock returns a block by index.
+func (b *blockchain) GetBlock(index uint64) (*types.Block, error) {
 	var block *types.Block
 
 	if err := b.db.View(func(tx *nutsdb.Tx) error {
-		entry, err := tx.Get(types.BucketBlocks, hash)
+		entry, err := tx.Get(types.BucketBlocks, uint64ToBytes(index))
 		if err != nil {
 			return err
 		}
@@ -99,30 +99,17 @@ func (b *blockchain) GetBlock(hash []byte) (*types.Block, error) {
 }
 
 // GetAllBlocks returns all blocks from the chain with pagination.
-func (b *blockchain) GetAllBlocks(offset, limit int, reverse bool) ([]*types.Block, error) {
-	var (
-		blocks []*types.Block
-		skip   int
-	)
+func (b *blockchain) GetAllBlocks(from, to uint64) ([]*types.Block, error) {
+	var blocks []*types.Block
 
 	if err := b.db.View(func(tx *nutsdb.Tx) error {
-		iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: reverse})
+		entries, err := tx.RangeScan(types.BucketBlocks, uint64ToBytes(from), uint64ToBytes(to))
+		if err != nil {
+			return err
+		}
 
-		for {
-			if skip >= offset {
-				data, err := iterator.Value()
-				if err != nil {
-					return err
-				}
-
-				blocks = append(blocks, types.DeserializeBlock(data))
-			} else {
-				skip++
-			}
-
-			if len(blocks) >= limit || !iterator.Next() {
-				break
-			}
+		for _, entry := range entries {
+			blocks = append(blocks, types.DeserializeBlock(entry.Value))
 		}
 
 		return nil
@@ -140,22 +127,22 @@ func (b *blockchain) GetLastBlock() *types.Block {
 
 // DeleteLastBlock deletes the last block from the chain.
 func (b *blockchain) DeleteLastBlock() error {
+	lastIndex := b.lastBlock.Index
+
 	if err := b.db.Update(func(tx *nutsdb.Tx) error {
 		if b.lastBlock != nil {
-			if err := tx.Delete(types.BucketBlocks, b.lastBlock.Hash); err != nil {
+			if err := tx.Delete(types.BucketBlocks, uint64ToBytes(lastIndex)); err != nil {
 				return err
 			}
 
 			b.lastBlock = nil
 
-			iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: true})
-
-			data, err := iterator.Value()
+			entry, err := tx.Get(types.BucketBlocks, uint64ToBytes(lastIndex-1))
 			if err != nil {
-				return nil // no blocks in the chain
+				return err
 			}
 
-			b.lastBlock = types.DeserializeBlock(data)
+			b.lastBlock = types.DeserializeBlock(entry.Value)
 		}
 
 		return nil
