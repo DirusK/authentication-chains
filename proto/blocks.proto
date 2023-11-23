@@ -1,0 +1,51 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "internal/types";
+
+import "authentication.proto";
+
+package blockchain;
+
+// Block is the block of blockchain.
+message Block {
+    bytes hash = 1;
+    bytes prev_hash = 2;
+    uint64 index = 3;
+    DeviceAuthenticationRequest dar = 4;
+    int64 timestamp = 5;
+}
+
+// BlockValidationRequest is the request for validating block.
+message BlockValidationRequest {
+    Block block = 1;
+}
+
+// BlockValidationResponse is the response for validating block.
+message BlockValidationResponse {
+    bool is_valid = 1;
+}
+
+// BlockRequest is the request for getting block by index.
+message BlockRequest {
+    uint64 index = 1;
+}
+
+// BlockResponse is the response for getting block by index.
+message BlockResponse {
+    Block block = 1;
+}
+
+// BlocksRequest is the request for getting blocks by range.
+message BlocksRequest {
+    uint64 from = 1;
+    uint64 to = 2;
+}
+
+// BlocksResponse is the response for getting blocks by range.
+message BlocksResponse {
+    repeated Block blocks = 1;
+}

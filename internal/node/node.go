@@ -6,35 +6,29 @@ package node
 
 import (
 	"bytes"
-	"crypto/rsa"
 	"fmt"
 
 	"github.com/nutsdb/nutsdb"
 	"google.golang.org/protobuf/proto"
 
-	"authentication-chains/blockchain"
-	"authentication-chains/cipher"
-	"authentication-chains/types"
+	"authentication-chains/internal/blockchain"
+	"authentication-chains/internal/cipher"
+	"authentication-chains/internal/types"
 )
 
 type (
 	// Node implements node logic.
 	Node struct {
-		name          string
+		types.UnimplementedNodeServer
+		cfg           Config
 		cipher        cipher.Cipher
 		chain         blockchain.Blockchain
 		db            *nutsdb.DB
-		clusterHead   *KnownNode
-		clusterNodes  []KnownNode
+		clusterHead   *Peer
+		clusterNodes  Peers
+		childrenNodes Peers
 		level         uint
 		isClusterHead bool
-	}
-
-	// KnownNode is a node that is known to the current node.
-	KnownNode struct {
-		name          string
-		deviceID      rsa.PublicKey
-		clusterHeadID rsa.PublicKey
 	}
 )
 
@@ -54,7 +48,7 @@ func New(cfg Config) (Node, error) {
 	}
 
 	return Node{
-		name:          cfg.Name,
+		cfg:           cfg,
 		cipher:        cipher.New(),
 		chain:         chain,
 		db:            db,
@@ -64,14 +58,11 @@ func New(cfg Config) (Node, error) {
 	}, nil
 }
 
-// Name returns the name of the node.
-func (n *Node) Name() string {
-	return n.name
-}
+func (n *Node) BroadcastDAR(dar *types.DeviceAuthenticationRequest) error {
+	for i, i := range n.clusterNodes.GetPeers() {
 
-// SerializePublicKey serializes the public key.
-func (n *Node) SerializePublicKey() []byte {
-	return n.cipher.SerializePublicKey()
+	}
+
 }
 
 // addAuthenticationEntry registers a device in authentication table.

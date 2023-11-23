@@ -4,12 +4,22 @@
 
 package node
 
+import (
+	"time"
+)
+
 type (
 	// Config is a node configuration.
 	Config struct {
-		Name    string  `yaml:"name" validate:"required"`
+		Meta    Meta    `yaml:"meta" validate:"required"`
 		Cluster Cluster `yaml:"cluster"`
 		Storage Storage `yaml:"storage"`
+		GRPC    GRPC    `yaml:"grpc"`
+	}
+
+	// Meta is a node meta configuration.
+	Meta struct {
+		Name string `yaml:"name" validate:"required"`
 	}
 
 	// Cluster is a node cluster configuration.
@@ -26,8 +36,9 @@ type (
 		Directory string `yaml:"directory" validate:"required,dirpath"`
 	}
 
-	// Server is a node server configuration.
-	Server struct {
-		GRPCAddress string `yaml:"grpc-address" validate:"required"`
+	// GRPC is a node server configuration.
+	GRPC struct {
+		Port    string        `yaml:"port" validate:"required"`
+		Timeout time.Duration `yaml:"timeout" validate:"required"`
 	}
 )

@@ -7,7 +7,7 @@ package node
 import (
 	"fmt"
 
-	"authentication-chains/types"
+	"authentication-chains/internal/types"
 )
 
 // bucketAuthTableLevel returns the name of the bucket that will store authentication table by level.

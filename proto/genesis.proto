@@ -1,0 +1,17 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "internal/types";
+
+package blockchain;
+
+// GenesisHashRequest is the request for getting genesis block hash.
+message GenesisHashRequest {}
+
+// GenesisHashResponse is the response for getting genesis block hash.
+message GenesisHashResponse {
+    bytes hash = 1;
+}

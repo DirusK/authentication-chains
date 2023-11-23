@@ -4,7 +4,7 @@
 
 package types
 
-func NewMessage(send) *Message {
+func NewMessage() *Message {
 	return &Message{
 		SenderId:   nil,
 		ReceiverId: nil,

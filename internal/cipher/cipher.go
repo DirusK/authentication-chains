@@ -17,7 +17,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"authentication-chains/types"
+	"authentication-chains/internal/types"
 )
 
 //go:generate ifacemaker -f cipher.go -s cipher -p cipher -i Cipher -y "Cipher - describe an interface for working with crypto operations."

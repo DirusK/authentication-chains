@@ -7,7 +7,7 @@ package cipher
 import (
 	"crypto/rsa"
 
-	"authentication-chains/types"
+	"authentication-chains/internal/types"
 )
 
 // Cipher - describe an interface for working with crypto operations.

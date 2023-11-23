@@ -1,0 +1,31 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "internal/types";
+
+package blockchain;
+
+// Peer is the peer of the blockchain network.
+message Peer {
+    string name = 1;
+    bytes device_id = 2;
+    bytes grpc_address = 3;
+    uint32 level = 4;
+}
+
+// PeersRequest is the request for getting peers.
+message PeersRequest {
+    uint32 level = 1;
+}
+
+// PeersResponse is the response for getting peers.
+message PeersResponse {
+    map<uint32, PeerList> peers = 1;
+
+    message PeerList {
+        repeated Peer peer = 1;
+    }
+}

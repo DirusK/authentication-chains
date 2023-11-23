@@ -1,0 +1,28 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "internal/types";
+
+package blockchain;
+
+// DeviceAuthenticationRequest is a request for authentication
+message DeviceAuthenticationRequest {
+    bytes device_id = 1;
+    bytes cluster_head_id = 2;
+    bytes signature = 3;
+}
+
+message DeviceAuthenticationResponse {
+    bool is_authenticated = 1;
+}
+
+// AuthenticationEntry is a single record in authentication table
+message AuthenticationEntry {
+    bytes device_id = 1;
+    bytes cluster_head_id = 2;
+    bytes block_hash = 3;
+    uint64 block_index = 4;
+}

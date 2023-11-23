@@ -1,0 +1,27 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "internal/types";
+
+import "blocks.proto";
+import "authentication.proto";
+import "peers.proto";
+import "message.proto";
+import "genesis.proto";
+import "status.proto";
+
+package blockchain;
+
+service Node {
+    rpc GetStatus (StatusRequest) returns (StatusResponse) {}
+    rpc GetBlock (BlockRequest) returns (BlockResponse) {}
+    rpc GetBlocks (BlocksRequest) returns (BlocksResponse) {}
+    rpc GetGenesisHash (GenesisHashRequest) returns (GenesisHashResponse) {}
+    rpc SendMessage (Message) returns (Message) {}
+    rpc SendDAR (DeviceAuthenticationRequest) returns (DeviceAuthenticationResponse) {}
+    rpc SendBlock (BlockValidationRequest) returns (BlockValidationResponse) {}
+    rpc GetPeers (PeersRequest) returns (PeersResponse) {}
+}

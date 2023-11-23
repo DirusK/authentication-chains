@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	"authentication-chains/cipher"
+	"authentication-chains/internal/cipher"
 )
 
 func NewBlock(prevHash []byte, index uint64, dar *DeviceAuthenticationRequest) *Block {

@@ -1,0 +1,18 @@
+/*
+ * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
+ */
+
+syntax = "proto3";
+
+option go_package = "internal/types";
+
+package blockchain;
+
+// StatusRequest is the request for getting status of the node.
+message StatusRequest {}
+
+// StatusResponse is the response for getting status of the node.
+message StatusResponse {
+    uint64 last_block_index = 1;
+    bytes last_block_hash = 2;
+}
