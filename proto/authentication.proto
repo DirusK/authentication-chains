@@ -16,7 +16,8 @@ message DeviceAuthenticationRequest {
 }
 
 message DeviceAuthenticationResponse {
-    bool is_authenticated = 1;
+    bool is_verified = 1;
+    bytes block_hash = 2;
 }
 
 // AuthenticationEntry is a single record in authentication table

@@ -9,6 +9,10 @@ import (
 	"encoding/gob"
 	"encoding/pem"
 	"fmt"
+
+	"google.golang.org/protobuf/proto"
+
+	"authentication-chains/internal/types"
 )
 
 // Deserialize deserializes the given data into a Cipher.
@@ -31,9 +35,44 @@ func Hash(data []byte) []byte {
 	return hash[:]
 }
 
+// VerifyDAR verifies the given DeviceAuthenticationRequest.
+func VerifyDAR(dar *types.DeviceAuthenticationRequest) error {
+	copyDar := &types.DeviceAuthenticationRequest{
+		DeviceId:      dar.DeviceId,
+		ClusterHeadId: dar.ClusterHeadId,
+	}
+
+	pubKey, err := DeserializePublicKey(copyDar.DeviceId)
+	if err != nil {
+		return fmt.Errorf("failed to deserialize public key: %w", err)
+	}
+
+	data, err := proto.Marshal(copyDar)
+	if err != nil {
+		return fmt.Errorf("failed to marshal dar: %w", err)
+	}
+
+	if err = VerifySignature(pubKey, dar.Signature, data); err != nil {
+		return fmt.Errorf("failed to verify dar signature: %w", ErrDARVerification)
+	}
+
+	return nil
+}
+
 // VerifySignature verifies the given signature against the given data using the public key.
 func VerifySignature(publicKey *rsa.PublicKey, signature, data []byte) error {
 	return rsa.VerifyPSS(publicKey, crypto.SHA256, Hash(data), signature, nil)
+}
+
+func SerializePublicKey(publicKey *rsa.PublicKey) []byte {
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(publicKey)
+
+	b := pem.Block{
+		Type:  typeRSAPublicKey,
+		Bytes: publicKeyBytes,
+	}
+
+	return pem.EncodeToMemory(&b)
 }
 
 // DeserializePublicKey deserializes a public key from bytes.
@@ -49,6 +88,17 @@ func DeserializePublicKey(data []byte) (*rsa.PublicKey, error) {
 	}
 
 	return publicKey, nil
+}
+
+func SerializePrivateKey(privateKey *rsa.PrivateKey) []byte {
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(privateKey)
+
+	b := pem.Block{
+		Type:  typeRSAPrivateKey,
+		Bytes: privateKeyBytes,
+	}
+
+	return pem.EncodeToMemory(&b)
 }
 
 // DeserializePrivateKey deserializes a private key from bytes.

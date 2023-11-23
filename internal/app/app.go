@@ -9,6 +9,7 @@ import (
 
 	"github.com/DirusK/utils/log"
 	"github.com/DirusK/utils/validator"
+	"github.com/alitto/pond"
 	"github.com/nutsdb/nutsdb"
 	"google.golang.org/grpc"
 
@@ -20,7 +21,7 @@ type (
 	// Meta is additional information about application.
 	Meta struct {
 		Name  string
-		Level uint
+		Level uint32
 	}
 
 	// App is a main application structure.
@@ -32,6 +33,7 @@ type (
 		db         *nutsdb.DB
 		grpcServer *grpc.Server
 		logger     log.Logger
+		workerPool *pond.WorkerPool
 		node       *node.Node
 	}
 )
@@ -45,12 +47,13 @@ func New(ctx context.Context, configPath string) *App {
 	app.initConfig(configPath)
 
 	app.meta = Meta{
-		Name:  app.cfg.Meta.Name,
+		Name:  app.cfg.Node.Name,
 		Level: app.cfg.Node.Level,
 	}
 
 	app.initLogger()
 	app.initStorage()
+	app.initWorkerPool(ctx)
 	app.initNode()
 	app.initGRPCServer()
 

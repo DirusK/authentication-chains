@@ -16,9 +16,11 @@ require (
 	github.com/DirusK/utils/printer v1.0.2 // indirect
 	github.com/DirusK/utils/tracing/sentry v1.0.2 // indirect
 	github.com/DirusK/utils/validator v1.0.1 // indirect
+	github.com/alitto/pond v1.8.3 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/antlabs/stl v0.0.1 // indirect
 	github.com/antlabs/timer v0.0.11 // indirect
+	github.com/avast/retry-go v3.0.0+incompatible // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
@@ -47,6 +49,7 @@ require (
 	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
+	github.com/sethvargo/go-retry v0.2.4 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect

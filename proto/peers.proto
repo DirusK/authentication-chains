@@ -11,9 +11,10 @@ package blockchain;
 // Peer is the peer of the blockchain network.
 message Peer {
     string name = 1;
-    bytes device_id = 2;
-    bytes grpc_address = 3;
-    uint32 level = 4;
+    uint32 level = 2;
+    bytes device_id = 3;
+    bytes cluster_head_id = 4;
+    string grpc_address = 5;
 }
 
 // PeersRequest is the request for getting peers.
@@ -23,9 +24,14 @@ message PeersRequest {
 
 // PeersResponse is the response for getting peers.
 message PeersResponse {
-    map<uint32, PeerList> peers = 1;
-
-    message PeerList {
-        repeated Peer peer = 1;
-    }
+    repeated Peer peers = 1;
 }
+
+//// PeersResponse is the response for getting peers.
+//message PeersResponse {
+//    map<uint32, PeerList> peers = 1;
+//
+//    message PeerList {
+//        repeated Peer peer = 1;
+//    }
+//}

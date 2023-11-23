@@ -6,6 +6,8 @@ syntax = "proto3";
 
 option go_package = "internal/types";
 
+import "peers.proto";
+
 package blockchain;
 
 // StatusRequest is the request for getting status of the node.
@@ -13,6 +15,7 @@ message StatusRequest {}
 
 // StatusResponse is the response for getting status of the node.
 message StatusResponse {
-    uint64 last_block_index = 1;
-    bytes last_block_hash = 2;
+    Peer peer = 1;
+    uint64 last_block_index = 4;
+    bytes last_block_hash = 5;
 }

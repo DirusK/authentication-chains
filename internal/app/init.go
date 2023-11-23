@@ -5,9 +5,12 @@
 package app
 
 import (
+	"context"
+
 	utils "github.com/DirusK/utils/config"
 	"github.com/DirusK/utils/log"
 	"github.com/DirusK/utils/validator"
+	"github.com/alitto/pond"
 	"github.com/nutsdb/nutsdb"
 	"google.golang.org/grpc"
 
@@ -49,10 +52,14 @@ func (a *App) initStorage() {
 func (a *App) initNode() {
 	var err error
 
-	a.node, err = node.New(a.cfg.Node, a.db, a.logger)
+	a.node, err = node.New(a.cfg.Node, a.db, a.workerPool, a.logger)
 	if err != nil {
 		a.logger.Fatal(err)
 	}
+}
+
+func (a *App) initWorkerPool(ctx context.Context) {
+	a.workerPool = pond.New(a.cfg.WorkerPool.MaxWorkers, a.cfg.WorkerPool.MaxCapacity, pond.Context(ctx))
 }
 
 func (a *App) initGRPCServer() {

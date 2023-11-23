@@ -17,9 +17,10 @@ import (
 
 // blockchain implements chain logic.
 type blockchain struct {
-	lastBlock *types.Block
-	mempool   MemPool
-	db        *nutsdb.DB
+	lastBlock   *types.Block
+	mempool     MemPool
+	genesisHash []byte
+	db          *nutsdb.DB
 }
 
 // New creates a new blockchain instance.
@@ -53,19 +54,23 @@ func (b *blockchain) AddToMemPool(request *types.DeviceAuthenticationRequest) {
 	b.mempool.Add(request)
 }
 
-// MineBlock creates a new block from the mem-pool.
-func (b *blockchain) MineBlock() (*types.Block, error) {
+// SetGenesisHash sets the genesis block hash.
+func (b *blockchain) SetGenesisHash(hash []byte) {
+	b.genesisHash = hash
+}
+
+// CreateBlock creates a new block from the mem-pool.
+func (b *blockchain) CreateBlock() (*types.Block, error) {
 	dar := b.mempool.GetFirst()
 	if dar == nil {
 		return nil, ErrEmptyMemPool
 	}
 
-	block := types.NewBlock(b.lastBlock.Hash, b.lastBlock.Index, dar)
-	if err := b.AddBlock(block); err != nil {
-		return nil, err
+	if b.lastBlock != nil {
+		return types.NewBlock(b.lastBlock.Hash, b.lastBlock.Index, dar), nil
 	}
 
-	return block, nil
+	return types.NewBlock(b.genesisHash, 0, dar), nil
 }
 
 // AddBlock adds a block to the chain.
@@ -142,7 +147,19 @@ func (b *blockchain) GetAllBlocks(from, to uint64) ([]*types.Block, error) {
 
 // GetLastBlock returns the last block of the chain.
 func (b *blockchain) GetLastBlock() *types.Block {
-	return b.lastBlock
+	if b.lastBlock == nil {
+		return nil
+	}
+
+	lastBlock := &types.Block{
+		Hash:      b.lastBlock.Hash,
+		PrevHash:  b.lastBlock.PrevHash,
+		Index:     b.lastBlock.Index,
+		Dar:       b.lastBlock.Dar,
+		Timestamp: b.lastBlock.Timestamp,
+	}
+
+	return lastBlock
 }
 
 // DeleteLastBlock deletes the last block from the chain.

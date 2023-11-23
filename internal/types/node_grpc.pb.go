@@ -22,16 +22,15 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Node_GetStatus_FullMethodName      = "/blockchain.Node/GetStatus"
-	Node_GetBlock_FullMethodName       = "/blockchain.Node/GetBlock"
-	Node_GetBlocks_FullMethodName      = "/blockchain.Node/GetBlocks"
-	Node_GetGenesisHash_FullMethodName = "/blockchain.Node/GetGenesisHash"
-	Node_GetPeers_FullMethodName       = "/blockchain.Node/GetPeers"
-	Node_SendMessage_FullMethodName    = "/blockchain.Node/SendMessage"
-	Node_SendBlock_FullMethodName      = "/blockchain.Node/SendBlock"
-	Node_SendDAR_FullMethodName        = "/blockchain.Node/SendDAR"
-	Node_BroadcastBlock_FullMethodName = "/blockchain.Node/BroadcastBlock"
-	Node_BroadcastDAR_FullMethodName   = "/blockchain.Node/BroadcastDAR"
+	Node_GetStatus_FullMethodName    = "/blockchain.Node/GetStatus"
+	Node_GetBlock_FullMethodName     = "/blockchain.Node/GetBlock"
+	Node_GetBlocks_FullMethodName    = "/blockchain.Node/GetBlocks"
+	Node_GetPeers_FullMethodName     = "/blockchain.Node/GetPeers"
+	Node_SendMessage_FullMethodName  = "/blockchain.Node/SendMessage"
+	Node_SendBlock_FullMethodName    = "/blockchain.Node/SendBlock"
+	Node_SendDAR_FullMethodName      = "/blockchain.Node/SendDAR"
+	Node_BroadcastDAR_FullMethodName = "/blockchain.Node/BroadcastDAR"
+	Node_RegisterNode_FullMethodName = "/blockchain.Node/RegisterNode"
 )
 
 // NodeClient is the client API for Node service.
@@ -41,13 +40,14 @@ type NodeClient interface {
 	GetStatus(ctx context.Context, in *StatusRequest, opts ...grpc.CallOption) (*StatusResponse, error)
 	GetBlock(ctx context.Context, in *BlockRequest, opts ...grpc.CallOption) (*BlockResponse, error)
 	GetBlocks(ctx context.Context, in *BlocksRequest, opts ...grpc.CallOption) (*BlocksResponse, error)
-	GetGenesisHash(ctx context.Context, in *GenesisHashRequest, opts ...grpc.CallOption) (*GenesisHashResponse, error)
+	// rpc GetGenesisHash (GenesisHashRequest) returns (GenesisHashResponse) {}
 	GetPeers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersResponse, error)
 	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
 	SendBlock(ctx context.Context, in *BlockValidationRequest, opts ...grpc.CallOption) (*BlockValidationResponse, error)
 	SendDAR(ctx context.Context, in *DeviceAuthenticationRequest, opts ...grpc.CallOption) (*DeviceAuthenticationResponse, error)
-	BroadcastBlock(ctx context.Context, in *BlockValidationRequest, opts ...grpc.CallOption) (*BlockValidationResponse, error)
+	// rpc BroadcastBlock (Block) returns (BlockValidationResponse) {}
 	BroadcastDAR(ctx context.Context, in *DeviceAuthenticationRequest, opts ...grpc.CallOption) (*DeviceAuthenticationResponse, error)
+	RegisterNode(ctx context.Context, in *NodeRegistrationRequest, opts ...grpc.CallOption) (*NodeRegistrationResponse, error)
 }
 
 type nodeClient struct {
@@ -79,15 +79,6 @@ func (c *nodeClient) GetBlock(ctx context.Context, in *BlockRequest, opts ...grp
 func (c *nodeClient) GetBlocks(ctx context.Context, in *BlocksRequest, opts ...grpc.CallOption) (*BlocksResponse, error) {
 	out := new(BlocksResponse)
 	err := c.cc.Invoke(ctx, Node_GetBlocks_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *nodeClient) GetGenesisHash(ctx context.Context, in *GenesisHashRequest, opts ...grpc.CallOption) (*GenesisHashResponse, error) {
-	out := new(GenesisHashResponse)
-	err := c.cc.Invoke(ctx, Node_GetGenesisHash_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -130,18 +121,18 @@ func (c *nodeClient) SendDAR(ctx context.Context, in *DeviceAuthenticationReques
 	return out, nil
 }
 
-func (c *nodeClient) BroadcastBlock(ctx context.Context, in *BlockValidationRequest, opts ...grpc.CallOption) (*BlockValidationResponse, error) {
-	out := new(BlockValidationResponse)
-	err := c.cc.Invoke(ctx, Node_BroadcastBlock_FullMethodName, in, out, opts...)
+func (c *nodeClient) BroadcastDAR(ctx context.Context, in *DeviceAuthenticationRequest, opts ...grpc.CallOption) (*DeviceAuthenticationResponse, error) {
+	out := new(DeviceAuthenticationResponse)
+	err := c.cc.Invoke(ctx, Node_BroadcastDAR_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *nodeClient) BroadcastDAR(ctx context.Context, in *DeviceAuthenticationRequest, opts ...grpc.CallOption) (*DeviceAuthenticationResponse, error) {
-	out := new(DeviceAuthenticationResponse)
-	err := c.cc.Invoke(ctx, Node_BroadcastDAR_FullMethodName, in, out, opts...)
+func (c *nodeClient) RegisterNode(ctx context.Context, in *NodeRegistrationRequest, opts ...grpc.CallOption) (*NodeRegistrationResponse, error) {
+	out := new(NodeRegistrationResponse)
+	err := c.cc.Invoke(ctx, Node_RegisterNode_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -155,13 +146,14 @@ type NodeServer interface {
 	GetStatus(context.Context, *StatusRequest) (*StatusResponse, error)
 	GetBlock(context.Context, *BlockRequest) (*BlockResponse, error)
 	GetBlocks(context.Context, *BlocksRequest) (*BlocksResponse, error)
-	GetGenesisHash(context.Context, *GenesisHashRequest) (*GenesisHashResponse, error)
+	// rpc GetGenesisHash (GenesisHashRequest) returns (GenesisHashResponse) {}
 	GetPeers(context.Context, *PeersRequest) (*PeersResponse, error)
 	SendMessage(context.Context, *Message) (*Message, error)
 	SendBlock(context.Context, *BlockValidationRequest) (*BlockValidationResponse, error)
 	SendDAR(context.Context, *DeviceAuthenticationRequest) (*DeviceAuthenticationResponse, error)
-	BroadcastBlock(context.Context, *BlockValidationRequest) (*BlockValidationResponse, error)
+	// rpc BroadcastBlock (Block) returns (BlockValidationResponse) {}
 	BroadcastDAR(context.Context, *DeviceAuthenticationRequest) (*DeviceAuthenticationResponse, error)
+	RegisterNode(context.Context, *NodeRegistrationRequest) (*NodeRegistrationResponse, error)
 	mustEmbedUnimplementedNodeServer()
 }
 
@@ -178,9 +170,6 @@ func (UnimplementedNodeServer) GetBlock(context.Context, *BlockRequest) (*BlockR
 func (UnimplementedNodeServer) GetBlocks(context.Context, *BlocksRequest) (*BlocksResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBlocks not implemented")
 }
-func (UnimplementedNodeServer) GetGenesisHash(context.Context, *GenesisHashRequest) (*GenesisHashResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetGenesisHash not implemented")
-}
 func (UnimplementedNodeServer) GetPeers(context.Context, *PeersRequest) (*PeersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPeers not implemented")
 }
@@ -193,11 +182,11 @@ func (UnimplementedNodeServer) SendBlock(context.Context, *BlockValidationReques
 func (UnimplementedNodeServer) SendDAR(context.Context, *DeviceAuthenticationRequest) (*DeviceAuthenticationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendDAR not implemented")
 }
-func (UnimplementedNodeServer) BroadcastBlock(context.Context, *BlockValidationRequest) (*BlockValidationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method BroadcastBlock not implemented")
-}
 func (UnimplementedNodeServer) BroadcastDAR(context.Context, *DeviceAuthenticationRequest) (*DeviceAuthenticationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method BroadcastDAR not implemented")
+}
+func (UnimplementedNodeServer) RegisterNode(context.Context, *NodeRegistrationRequest) (*NodeRegistrationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RegisterNode not implemented")
 }
 func (UnimplementedNodeServer) mustEmbedUnimplementedNodeServer() {}
 
@@ -262,24 +251,6 @@ func _Node_GetBlocks_Handler(srv interface{}, ctx context.Context, dec func(inte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServer).GetBlocks(ctx, req.(*BlocksRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Node_GetGenesisHash_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GenesisHashRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NodeServer).GetGenesisHash(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Node_GetGenesisHash_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).GetGenesisHash(ctx, req.(*GenesisHashRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -356,24 +327,6 @@ func _Node_SendDAR_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Node_BroadcastBlock_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(BlockValidationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(NodeServer).BroadcastBlock(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Node_BroadcastBlock_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(NodeServer).BroadcastBlock(ctx, req.(*BlockValidationRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _Node_BroadcastDAR_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DeviceAuthenticationRequest)
 	if err := dec(in); err != nil {
@@ -388,6 +341,24 @@ func _Node_BroadcastDAR_Handler(srv interface{}, ctx context.Context, dec func(i
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServer).BroadcastDAR(ctx, req.(*DeviceAuthenticationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_RegisterNode_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(NodeRegistrationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).RegisterNode(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_RegisterNode_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).RegisterNode(ctx, req.(*NodeRegistrationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -412,10 +383,6 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Node_GetBlocks_Handler,
 		},
 		{
-			MethodName: "GetGenesisHash",
-			Handler:    _Node_GetGenesisHash_Handler,
-		},
-		{
 			MethodName: "GetPeers",
 			Handler:    _Node_GetPeers_Handler,
 		},
@@ -432,12 +399,12 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Node_SendDAR_Handler,
 		},
 		{
-			MethodName: "BroadcastBlock",
-			Handler:    _Node_BroadcastBlock_Handler,
-		},
-		{
 			MethodName: "BroadcastDAR",
 			Handler:    _Node_BroadcastDAR_Handler,
+		},
+		{
+			MethodName: "RegisterNode",
+			Handler:    _Node_RegisterNode_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -14,8 +14,8 @@ type (
 	Blockchain interface {
 		// AddToMemPool adds a device authentication request to the mem-pool.
 		AddToMemPool(request *types.DeviceAuthenticationRequest)
-		// MineBlock creates a new block from the mem-pool.
-		MineBlock() (*types.Block, error)
+		// CreateBlock creates a new block from the mem-pool.
+		CreateBlock() (*types.Block, error)
 		// AddBlock adds a block to the chain.
 		AddBlock(block *types.Block) error
 		// GetBlock returns a block by index.
@@ -28,6 +28,8 @@ type (
 		DeleteLastBlock() error
 		// DeleteBlocks delete blocks from the chain.
 		DeleteBlocks(from, to uint64) error
+		// SetGenesisHash sets the genesis block hash.
+		SetGenesisHash(hash []byte)
 	}
 
 	// MemPool - describe an interface for working with memory pool.

@@ -163,8 +163,8 @@ func (c cipher) Serialize() []byte {
 	return buffer.Bytes()
 }
 
-// SignDar signs the given DeviceAuthenticationRequest.
-func (c cipher) SignDar(dar *types.DeviceAuthenticationRequest) error {
+// SignDAR signs the given DeviceAuthenticationRequest.
+func (c cipher) SignDAR(dar *types.DeviceAuthenticationRequest) error {
 	data, err := proto.Marshal(dar)
 	if err != nil {
 		return fmt.Errorf("failed to marshal dar: %w", err)
@@ -176,6 +176,39 @@ func (c cipher) SignDar(dar *types.DeviceAuthenticationRequest) error {
 	}
 
 	return nil
+}
+
+// VerifyDAR verifies the given DeviceAuthenticationRequest.
+func (c cipher) VerifyDAR(dar *types.DeviceAuthenticationRequest) error {
+	signature := dar.Signature
+	dar.Signature = nil
+
+	data, err := proto.Marshal(dar)
+	if err != nil {
+		return fmt.Errorf("failed to marshal dar: %w", err)
+	}
+
+	if err = c.VerifySignature(signature, data); err != nil {
+		return fmt.Errorf("failed to verify dar signature: %w", err)
+	}
+
+	return nil
+}
+
+// HashBlock without a hash field.
+func (c cipher) HashBlock(block *types.Block) ([]byte, error) {
+	hash := block.Hash
+	block.Hash = nil
+
+	data, err := proto.Marshal(block)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal block: %w", err)
+	}
+
+	result := Hash(data)
+	block.Hash = hash
+
+	return result, nil
 }
 
 // EncryptContent encrypts the given Content.

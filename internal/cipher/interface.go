@@ -30,8 +30,12 @@ type Cipher interface {
 	VerifySignature(signature []byte, data []byte) error
 	// Serialize serializes the Cipher into bytes.
 	Serialize() []byte
-	// SignDar signs the given DeviceAuthenticationRequest.
-	SignDar(dar *types.DeviceAuthenticationRequest) error
+	// SignDAR signs the given DeviceAuthenticationRequest.
+	SignDAR(dar *types.DeviceAuthenticationRequest) error
+	// VerifyDAR verifies the given DeviceAuthenticationRequest.
+	VerifyDAR(dar *types.DeviceAuthenticationRequest) error
 	// EncryptContent encrypts the given Content.
 	EncryptContent(content *types.Content) ([]byte, error)
+	// HashBlock without a hash field.
+	HashBlock(block *types.Block) ([]byte, error)
 }

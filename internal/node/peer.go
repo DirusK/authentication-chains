@@ -5,64 +5,72 @@
 package node
 
 import (
-	"crypto/rsa"
 	"sync"
 
 	"authentication-chains/internal/types"
 )
 
 type (
-	// Peer is a node known to the current node.
-	Peer struct {
-		name          string
-		deviceID      rsa.PublicKey
-		clusterHeadID rsa.PublicKey
-		client        types.NodeClient
-	}
-
 	// Peers is a list of known nodes.
 	Peers struct {
 		mutex sync.RWMutex
-		peers []Peer
+		Peers []*Peer
+	}
+
+	// Peer is a node known to the current node.
+	Peer struct {
+		Name          string
+		GRPCAddress   string
+		DeviceID      []byte
+		ClusterHeadID []byte
+		Level         uint32
+		Client        types.NodeClient
 	}
 )
 
-// NewPeers creates a new peers instance.
-func NewPeers(peers ...Peer) *Peers {
-	return &Peers{
-		mutex: sync.RWMutex{},
-		peers: peers,
+// NewPeer creates a new peer instance.
+func NewPeer(name string, deviceID, clusterHeadID []byte, GRPCAddress string, level uint32, client types.NodeClient) *Peer {
+	return &Peer{
+		Name:          name,
+		DeviceID:      deviceID,
+		ClusterHeadID: clusterHeadID,
+		Client:        client,
+		GRPCAddress:   GRPCAddress,
+		Level:         level,
 	}
 }
 
-// IsEmpty checks if the peer is empty.
-func (p *Peers) IsEmpty() bool {
-	return len(p.peers) == 0
+// NewPeers creates a new peers instance.
+func NewPeers(peers ...*Peer) *Peers {
+	return &Peers{
+		mutex: sync.RWMutex{},
+		Peers: peers,
+	}
 }
 
-// GetPeers returns a list of peers.
-func (p *Peers) GetPeers() []Peer {
+// GetAll returns a list of peers.
+func (p *Peers) GetAll() []*Peer {
 	p.mutex.RLock()
 	defer p.mutex.RUnlock()
 
-	peers := make([]Peer, len(p.peers))
-	copy(peers, p.peers)
+	peers := make([]*Peer, len(p.Peers))
+	copy(peers, p.Peers)
 
 	return peers
 }
 
-// SetPeers sets a list of peers.
-func (p *Peers) SetPeers(peers []Peer) {
+// Set sets a list of peers.
+func (p *Peers) Set(peers []*Peer) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	p.peers = peers
+	p.Peers = peers
 }
 
-// AddPeer adds a peer to the list.
-func (p *Peers) AddPeer(peer Peer) {
+// Add adds a peer to the list.
+func (p *Peers) Add(peer *Peer) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	p.peers = append(p.peers, peer)
+	p.Peers = append(p.Peers, peer)
 }
