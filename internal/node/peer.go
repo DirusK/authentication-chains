@@ -27,6 +27,19 @@ type (
 	}
 )
 
+// NewPeers creates a new peers instance.
+func NewPeers(peers ...Peer) *Peers {
+	return &Peers{
+		mutex: sync.RWMutex{},
+		peers: peers,
+	}
+}
+
+// IsEmpty checks if the peer is empty.
+func (p *Peers) IsEmpty() bool {
+	return len(p.peers) == 0
+}
+
 // GetPeers returns a list of peers.
 func (p *Peers) GetPeers() []Peer {
 	p.mutex.RLock()

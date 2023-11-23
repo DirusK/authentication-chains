@@ -12,4 +12,10 @@ const (
 	BucketBlocks = "blocks"
 	// BucketAuthenticationTable is the name of the bucket that will store authentication table.
 	BucketAuthenticationTable = "authentication-table"
+	// BucketCipher is the name of the bucket that will store cipher.
+	BucketCipher = "cipher"
+)
+
+var (
+	KeyCipher = []byte("cipher")
 )

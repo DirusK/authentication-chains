@@ -15,6 +15,7 @@ import (
 	"encoding/pem"
 	"fmt"
 
+	"github.com/nutsdb/nutsdb"
 	"google.golang.org/protobuf/proto"
 
 	"authentication-chains/internal/types"
@@ -41,17 +42,43 @@ type cipher struct {
 	publicKey  *rsa.PublicKey
 }
 
-func New() Cipher {
+func New(db *nutsdb.DB) (Cipher, error) {
+	var c Cipher
+
+	if err := db.View(func(tx *nutsdb.Tx) error {
+		entry, err := tx.Get(types.BucketCipher, types.KeyCipher)
+		if err != nil {
+			return err
+		}
+
+		c, err = Deserialize(entry.Value)
+		if err != nil {
+			return err
+		}
+
+		return nil
+	}); err == nil {
+		return c, nil
+	}
+
 	// The GenerateKey method takes in a reader that returns random bits, and the number of bits
 	privateKey, err := rsa.GenerateKey(rand.Reader, bytes256)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
-	return cipher{
+	c = cipher{
 		privateKey: privateKey,
 		publicKey:  &privateKey.PublicKey,
 	}
+
+	if err = db.Update(func(tx *nutsdb.Tx) error {
+		return tx.Put(types.BucketCipher, types.KeyCipher, c.Serialize(), types.InfinityTTL)
+	}); err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 // PublicKey returns the public rsa key.

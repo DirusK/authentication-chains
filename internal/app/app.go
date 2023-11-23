@@ -5,18 +5,54 @@
 package app
 
 import (
+	"context"
+
+	"github.com/DirusK/utils/log"
+	"github.com/DirusK/utils/validator"
 	"github.com/nutsdb/nutsdb"
 	"google.golang.org/grpc"
+
+	"authentication-chains/internal/config"
+	"authentication-chains/internal/node"
 )
 
-type App struct {
-	db         *nutsdb.DB
-	grpcServer *grpc.Server
-}
-
-func New(db *nutsdb.DB, grpcServer *grpc.Server) App {
-	return App{
-		db:         db,
-		grpcServer: grpcServer,
+type (
+	// Meta is additional information about application.
+	Meta struct {
+		Name  string
+		Level uint
 	}
+
+	// App is a main application structure.
+	App struct {
+		meta       Meta
+		ctx        context.Context
+		validator  validator.Validator
+		cfg        *config.Config
+		db         *nutsdb.DB
+		grpcServer *grpc.Server
+		logger     log.Logger
+		node       *node.Node
+	}
+)
+
+// New creates a new application instance.
+func New(ctx context.Context, configPath string) *App {
+	app := new(App)
+	app.ctx = ctx
+
+	app.initValidator()
+	app.initConfig(configPath)
+
+	app.meta = Meta{
+		Name:  app.cfg.Meta.Name,
+		Level: app.cfg.Node.Level,
+	}
+
+	app.initLogger()
+	app.initStorage()
+	app.initNode()
+	app.initGRPCServer()
+
+	return app
 }
