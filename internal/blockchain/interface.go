@@ -10,7 +10,12 @@ import (
 
 // Blockchain - describe an interface for working with blockchain.
 type (
+	// Blockchain - describe an interface for working with blockchain.
 	Blockchain interface {
+		// AddToMemPool adds a device authentication request to the mem-pool.
+		AddToMemPool(request *types.DeviceAuthenticationRequest)
+		// MineBlock creates a new block from the mem-pool.
+		MineBlock() (*types.Block, error)
 		// AddBlock adds a block to the chain.
 		AddBlock(block *types.Block) error
 		// GetBlock returns a block by index.

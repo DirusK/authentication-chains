@@ -103,6 +103,102 @@ func (x *Block) GetTimestamp() int64 {
 	return 0
 }
 
+// BlockValidationRequest is the request for validating block.
+type BlockValidationRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Block *Block `protobuf:"bytes,1,opt,name=block,proto3" json:"block,omitempty"`
+}
+
+func (x *BlockValidationRequest) Reset() {
+	*x = BlockValidationRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_blocks_proto_msgTypes[1]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BlockValidationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BlockValidationRequest) ProtoMessage() {}
+
+func (x *BlockValidationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_blocks_proto_msgTypes[1]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BlockValidationRequest.ProtoReflect.Descriptor instead.
+func (*BlockValidationRequest) Descriptor() ([]byte, []int) {
+	return file_blocks_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *BlockValidationRequest) GetBlock() *Block {
+	if x != nil {
+		return x.Block
+	}
+	return nil
+}
+
+// BlockValidationResponse is the response for validating block.
+type BlockValidationResponse struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	IsValid bool `protobuf:"varint,1,opt,name=is_valid,json=isValid,proto3" json:"is_valid,omitempty"`
+}
+
+func (x *BlockValidationResponse) Reset() {
+	*x = BlockValidationResponse{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_blocks_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *BlockValidationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BlockValidationResponse) ProtoMessage() {}
+
+func (x *BlockValidationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_blocks_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BlockValidationResponse.ProtoReflect.Descriptor instead.
+func (*BlockValidationResponse) Descriptor() ([]byte, []int) {
+	return file_blocks_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *BlockValidationResponse) GetIsValid() bool {
+	if x != nil {
+		return x.IsValid
+	}
+	return false
+}
+
 // BlockRequest is the request for getting block by index.
 type BlockRequest struct {
 	state         protoimpl.MessageState
@@ -115,7 +211,7 @@ type BlockRequest struct {
 func (x *BlockRequest) Reset() {
 	*x = BlockRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_blocks_proto_msgTypes[1]
+		mi := &file_blocks_proto_msgTypes[3]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -128,7 +224,7 @@ func (x *BlockRequest) String() string {
 func (*BlockRequest) ProtoMessage() {}
 
 func (x *BlockRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_blocks_proto_msgTypes[1]
+	mi := &file_blocks_proto_msgTypes[3]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -141,7 +237,7 @@ func (x *BlockRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockRequest.ProtoReflect.Descriptor instead.
 func (*BlockRequest) Descriptor() ([]byte, []int) {
-	return file_blocks_proto_rawDescGZIP(), []int{1}
+	return file_blocks_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *BlockRequest) GetIndex() uint64 {
@@ -163,7 +259,7 @@ type BlockResponse struct {
 func (x *BlockResponse) Reset() {
 	*x = BlockResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_blocks_proto_msgTypes[2]
+		mi := &file_blocks_proto_msgTypes[4]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -176,7 +272,7 @@ func (x *BlockResponse) String() string {
 func (*BlockResponse) ProtoMessage() {}
 
 func (x *BlockResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_blocks_proto_msgTypes[2]
+	mi := &file_blocks_proto_msgTypes[4]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -189,7 +285,7 @@ func (x *BlockResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlockResponse.ProtoReflect.Descriptor instead.
 func (*BlockResponse) Descriptor() ([]byte, []int) {
-	return file_blocks_proto_rawDescGZIP(), []int{2}
+	return file_blocks_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *BlockResponse) GetBlock() *Block {
@@ -212,7 +308,7 @@ type BlocksRequest struct {
 func (x *BlocksRequest) Reset() {
 	*x = BlocksRequest{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_blocks_proto_msgTypes[3]
+		mi := &file_blocks_proto_msgTypes[5]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -225,7 +321,7 @@ func (x *BlocksRequest) String() string {
 func (*BlocksRequest) ProtoMessage() {}
 
 func (x *BlocksRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_blocks_proto_msgTypes[3]
+	mi := &file_blocks_proto_msgTypes[5]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -238,7 +334,7 @@ func (x *BlocksRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlocksRequest.ProtoReflect.Descriptor instead.
 func (*BlocksRequest) Descriptor() ([]byte, []int) {
-	return file_blocks_proto_rawDescGZIP(), []int{3}
+	return file_blocks_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *BlocksRequest) GetFrom() uint64 {
@@ -267,7 +363,7 @@ type BlocksResponse struct {
 func (x *BlocksResponse) Reset() {
 	*x = BlocksResponse{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_blocks_proto_msgTypes[4]
+		mi := &file_blocks_proto_msgTypes[6]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -280,7 +376,7 @@ func (x *BlocksResponse) String() string {
 func (*BlocksResponse) ProtoMessage() {}
 
 func (x *BlocksResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_blocks_proto_msgTypes[4]
+	mi := &file_blocks_proto_msgTypes[6]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -293,7 +389,7 @@ func (x *BlocksResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BlocksResponse.ProtoReflect.Descriptor instead.
 func (*BlocksResponse) Descriptor() ([]byte, []int) {
-	return file_blocks_proto_rawDescGZIP(), []int{4}
+	return file_blocks_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *BlocksResponse) GetBlocks() []*Block {
@@ -319,22 +415,29 @@ var file_blocks_proto_rawDesc = []byte{
 	0x63, 0x65, 0x41, 0x75, 0x74, 0x68, 0x65, 0x6e, 0x74, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e,
 	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x03, 0x64, 0x61, 0x72, 0x12, 0x1c, 0x0a, 0x09,
 	0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x05, 0x20, 0x01, 0x28, 0x03, 0x52,
-	0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x24, 0x0a, 0x0c, 0x42, 0x6c,
-	0x6f, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x6e,
-	0x64, 0x65, 0x78, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x05, 0x69, 0x6e, 0x64, 0x65, 0x78,
-	0x22, 0x38, 0x0a, 0x0d, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x27, 0x0a, 0x05, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b,
-	0x32, 0x11, 0x2e, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x42, 0x6c,
-	0x6f, 0x63, 0x6b, 0x52, 0x05, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x22, 0x33, 0x0a, 0x0d, 0x42, 0x6c,
-	0x6f, 0x63, 0x6b, 0x73, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x66,
-	0x72, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01, 0x28, 0x04, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12,
-	0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x02, 0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x74, 0x6f, 0x22,
-	0x3b, 0x0a, 0x0e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73,
-	0x65, 0x12, 0x29, 0x0a, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28,
-	0x0b, 0x32, 0x11, 0x2e, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x42,
-	0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x06, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x42, 0x10, 0x5a, 0x0e,
-	0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0x41, 0x0a, 0x16, 0x42, 0x6c,
+	0x6f, 0x63, 0x6b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x27, 0x0a, 0x05, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x63, 0x68, 0x61, 0x69, 0x6e,
+	0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x05, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x22, 0x34, 0x0a,
+	0x17, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x56, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x69, 0x6f, 0x6e,
+	0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x19, 0x0a, 0x08, 0x69, 0x73, 0x5f, 0x76,
+	0x61, 0x6c, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x07, 0x69, 0x73, 0x56, 0x61,
+	0x6c, 0x69, 0x64, 0x22, 0x24, 0x0a, 0x0c, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x04, 0x52, 0x05, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x22, 0x38, 0x0a, 0x0d, 0x42, 0x6c, 0x6f,
+	0x63, 0x6b, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x27, 0x0a, 0x05, 0x62, 0x6c,
+	0x6f, 0x63, 0x6b, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x62, 0x6c, 0x6f, 0x63,
+	0x6b, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x05, 0x62, 0x6c,
+	0x6f, 0x63, 0x6b, 0x22, 0x33, 0x0a, 0x0d, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x12, 0x0a, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x04, 0x52, 0x04, 0x66, 0x72, 0x6f, 0x6d, 0x12, 0x0e, 0x0a, 0x02, 0x74, 0x6f, 0x18, 0x02,
+	0x20, 0x01, 0x28, 0x04, 0x52, 0x02, 0x74, 0x6f, 0x22, 0x3b, 0x0a, 0x0e, 0x42, 0x6c, 0x6f, 0x63,
+	0x6b, 0x73, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12, 0x29, 0x0a, 0x06, 0x62, 0x6c,
+	0x6f, 0x63, 0x6b, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x11, 0x2e, 0x62, 0x6c, 0x6f,
+	0x63, 0x6b, 0x63, 0x68, 0x61, 0x69, 0x6e, 0x2e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x52, 0x06, 0x62,
+	0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x42, 0x10, 0x5a, 0x0e, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61,
+	0x6c, 0x2f, 0x74, 0x79, 0x70, 0x65, 0x73, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -349,24 +452,27 @@ func file_blocks_proto_rawDescGZIP() []byte {
 	return file_blocks_proto_rawDescData
 }
 
-var file_blocks_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_blocks_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
 var file_blocks_proto_goTypes = []interface{}{
 	(*Block)(nil),                       // 0: blockchain.Block
-	(*BlockRequest)(nil),                // 1: blockchain.BlockRequest
-	(*BlockResponse)(nil),               // 2: blockchain.BlockResponse
-	(*BlocksRequest)(nil),               // 3: blockchain.BlocksRequest
-	(*BlocksResponse)(nil),              // 4: blockchain.BlocksResponse
-	(*DeviceAuthenticationRequest)(nil), // 5: blockchain.DeviceAuthenticationRequest
+	(*BlockValidationRequest)(nil),      // 1: blockchain.BlockValidationRequest
+	(*BlockValidationResponse)(nil),     // 2: blockchain.BlockValidationResponse
+	(*BlockRequest)(nil),                // 3: blockchain.BlockRequest
+	(*BlockResponse)(nil),               // 4: blockchain.BlockResponse
+	(*BlocksRequest)(nil),               // 5: blockchain.BlocksRequest
+	(*BlocksResponse)(nil),              // 6: blockchain.BlocksResponse
+	(*DeviceAuthenticationRequest)(nil), // 7: blockchain.DeviceAuthenticationRequest
 }
 var file_blocks_proto_depIdxs = []int32{
-	5, // 0: blockchain.Block.dar:type_name -> blockchain.DeviceAuthenticationRequest
-	0, // 1: blockchain.BlockResponse.block:type_name -> blockchain.Block
-	0, // 2: blockchain.BlocksResponse.blocks:type_name -> blockchain.Block
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	7, // 0: blockchain.Block.dar:type_name -> blockchain.DeviceAuthenticationRequest
+	0, // 1: blockchain.BlockValidationRequest.block:type_name -> blockchain.Block
+	0, // 2: blockchain.BlockResponse.block:type_name -> blockchain.Block
+	0, // 3: blockchain.BlocksResponse.blocks:type_name -> blockchain.Block
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_blocks_proto_init() }
@@ -389,7 +495,7 @@ func file_blocks_proto_init() {
 			}
 		}
 		file_blocks_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BlockRequest); i {
+			switch v := v.(*BlockValidationRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -401,7 +507,7 @@ func file_blocks_proto_init() {
 			}
 		}
 		file_blocks_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BlockResponse); i {
+			switch v := v.(*BlockValidationResponse); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -413,7 +519,7 @@ func file_blocks_proto_init() {
 			}
 		}
 		file_blocks_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*BlocksRequest); i {
+			switch v := v.(*BlockRequest); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -425,6 +531,30 @@ func file_blocks_proto_init() {
 			}
 		}
 		file_blocks_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BlockResponse); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_blocks_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*BlocksRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_blocks_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BlocksResponse); i {
 			case 0:
 				return &v.state
@@ -443,7 +573,7 @@ func file_blocks_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_blocks_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   7,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
