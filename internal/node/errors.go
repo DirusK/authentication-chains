@@ -9,10 +9,10 @@ import (
 )
 
 var (
-	ErrBlockValidation  = errors.New("block validation failed")
-	ErrVerification     = errors.New("verification failed")
-	ErrInvalidDAR       = errors.New("invalid device authentication request")
-	ErrWaitBlockTimeout = errors.New("wait block timeout ")
-	ErrBlockHasNotMined = errors.New("block has not mined")
-	ErrBlockHasNoDAR    = errors.New("block has no device authentication request")
+	ErrBlockValidation        = errors.New("block validation failed")
+	ErrVerification           = errors.New("verification failed")
+	ErrInvalidDAR             = errors.New("invalid device authentication request")
+	ErrBlockHasNoDAR          = errors.New("block has no device authentication request")
+	ErrInvalidMessageReceiver = errors.New("invalid message receiver")
+	ErrNotFoundBlock          = errors.New("block not found")
 )

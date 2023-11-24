@@ -12,10 +12,8 @@ import (
 type (
 	// Blockchain - describe an interface for working with blockchain.
 	Blockchain interface {
-		// AddToMemPool adds a device authentication request to the mem-pool.
-		AddToMemPool(request *types.DeviceAuthenticationRequest)
 		// CreateBlock creates a new block from the mem-pool.
-		CreateBlock() (*types.Block, error)
+		CreateBlock(dar *types.DeviceAuthenticationRequest) (*types.Block, error)
 		// AddBlock adds a block to the chain.
 		AddBlock(block *types.Block) error
 		// GetBlock returns a block by index.
@@ -24,6 +22,8 @@ type (
 		GetAllBlocks(from, to uint64) ([]*types.Block, error)
 		// GetLastBlock returns the last block of the chain.
 		GetLastBlock() *types.Block
+		// GetFirstBlock returns the first block of the chain.
+		GetFirstBlock() *types.Block
 		// DeleteLastBlock deletes the last block from the chain.
 		DeleteLastBlock() error
 		// DeleteBlocks delete blocks from the chain.

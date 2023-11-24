@@ -29,6 +29,15 @@ message BlockValidationResponse {
     bool is_valid = 1;
 }
 
+//message FindBlockRequest {
+//    bytes hash = 1;
+//    uint64 index = 2;
+//}
+//
+//message FindBlockResponse {
+//    Block block = 1;
+//}
+
 // BlockRequest is the request for getting block by index.
 message BlockRequest {
     uint64 index = 1;

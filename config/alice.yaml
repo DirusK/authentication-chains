@@ -2,12 +2,7 @@ node:
   name: "alice"
   level: 0
   genesis-hash: "0x0000000"
-  is-cluster-head: false
   cluster-head-grpc-address:
-  nodes-grpc-addresses: []
-  wait-block:
-    timeout: 1m
-    interval: 1s
   grpc:
     address: "localhost:50050"
     timeout: 1m
@@ -22,15 +17,14 @@ logger:
   with-caller: true
   colored: true
 
+worker-pool:
+  max-workers: 10
+  max-capacity: 100
+
 schedulers:
   sync:
     enabled: true
     interval: 1m
-    immediate: true
-
-  mine:
-    enabled: true
-    interval: 5s
     immediate: true
 
   explore:

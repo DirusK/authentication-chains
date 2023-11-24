@@ -38,4 +38,6 @@ type Cipher interface {
 	EncryptContent(content *types.Content) ([]byte, error)
 	// HashBlock without a hash field.
 	HashBlock(block *types.Block) ([]byte, error)
+	// DecryptContent decrypts the given Content.
+	DecryptContent(cipherText []byte) (*types.Content, error)
 }

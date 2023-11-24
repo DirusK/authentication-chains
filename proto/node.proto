@@ -6,12 +6,11 @@ syntax = "proto3";
 
 option go_package = "internal/types";
 
-// import "google/protobuf/empty.proto";
+//import "google/protobuf/empty.proto";
 import "blocks.proto";
 import "authentication.proto";
 import "peers.proto";
 import "message.proto";
-//import "genesis.proto";
 import "status.proto";
 
 package blockchain;
@@ -20,27 +19,24 @@ service Node {
     rpc GetStatus (StatusRequest) returns (StatusResponse) {}
     rpc GetBlock (BlockRequest) returns (BlockResponse) {}
     rpc GetBlocks (BlocksRequest) returns (BlocksResponse) {}
-//    rpc GetGenesisHash (GenesisHashRequest) returns (GenesisHashResponse) {}
     rpc GetPeers (PeersRequest) returns (PeersResponse) {}
 
+//    rpc FindBlock(FindBlockRequest) returns (FindBlockResponse) {}
+
     rpc SendMessage (Message) returns (Message) {}
-    rpc SendBlock (BlockValidationRequest) returns (BlockValidationResponse) {}
     rpc SendDAR (DeviceAuthenticationRequest) returns (DeviceAuthenticationResponse) {}
+    rpc SendBlock (BlockValidationRequest) returns (BlockValidationResponse) {}
 
-   //  rpc BroadcastBlock (Block) returns (BlockValidationResponse) {}
-    rpc BroadcastDAR (DeviceAuthenticationRequest) returns (DeviceAuthenticationResponse) {}
-
+    rpc VerifyDevice (VerifyDeviceRequest) returns (VerifyDeviceResponse) {}
     rpc RegisterNode (NodeRegistrationRequest) returns (NodeRegistrationResponse) {}
 }
 
 message NodeRegistrationRequest {
-    string name = 1;
-    string address = 2;
-    DeviceAuthenticationRequest dar = 3;
+    Peer node = 1;
+    DeviceAuthenticationRequest dar = 2;
 }
 
 message NodeRegistrationResponse {
-    bool is_registered = 1;
-    bytes genesis_hash = 2;
-    repeated Peer peers = 3;
+    bytes genesis_hash = 1;
+    repeated Peer peers = 2;
 }

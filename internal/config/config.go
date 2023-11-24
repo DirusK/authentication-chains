@@ -18,18 +18,21 @@ type (
 		GRPC       GRPC       `yaml:"grpc" validate:"required"`
 		Logger     log.Config `yaml:"logger" validate:"required"`
 		WorkerPool WorkerPool `yaml:"worker-pool" validate:"required"`
+		Schedulers Schedulers `yaml:"schedulers" validate:"required"`
 	}
 
 	// Node is a node cluster configuration.
 	Node struct {
-		Name                   string   `yaml:"name" validate:"required"`
-		Level                  uint32   `yaml:"level" validate:"required"`
-		GenesisHash            string   `yaml:"genesis-hash"`
-		IsClusterHead          bool     `yaml:"is-cluster-head"`
-		ClusterHeadGRPCAddress string   `yaml:"cluster-head-grpc-address"`
-		NodesGRPCAddresses     []string `yaml:"nodes-grpc-addresses"`
-		WaitBlock              Retry    `yaml:"wait-block"`
-		GRPC                   GRPC     `yaml:"grpc" validate:"required"`
+		Name                   string `yaml:"name" validate:"required"`
+		Level                  uint32 `yaml:"level" validate:"required"`
+		GenesisHash            string `yaml:"genesis-hash"`
+		ClusterHeadGRPCAddress string `yaml:"cluster-head-grpc-address"`
+		GRPC                   GRPC   `yaml:"grpc" validate:"required"`
+	}
+
+	Schedulers struct {
+		Sync    Scheduler `yaml:"sync" validate:"required"`
+		Explore Scheduler `yaml:"explore" validate:"required"`
 	}
 
 	// Storage is a node database configuration.
@@ -41,12 +44,6 @@ type (
 	GRPC struct {
 		Address string        `yaml:"address" validate:"required"`
 		Timeout time.Duration `yaml:"timeout" validate:"required"`
-	}
-
-	// Retry is a retry configuration.
-	Retry struct {
-		Attempts uint          `yaml:"attempts" validate:"required"`
-		Interval time.Duration `yaml:"interval" validate:"required"`
 	}
 
 	// Scheduler is a scheduler configuration.
@@ -61,4 +58,11 @@ type (
 		MaxWorkers  int `yaml:"max-workers" valid:"required"`
 		MaxCapacity int `yaml:"max-capacity" valid:"required"`
 	}
+
+	// // Retry is a retry configuration.
+	// Retry struct {
+	// 	Attempts uint          `yaml:"attempts" validate:"required"`
+	// 	Interval time.Duration `yaml:"interval" validate:"required"`
+	// }
+
 )

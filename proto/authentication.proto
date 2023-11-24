@@ -16,8 +16,7 @@ message DeviceAuthenticationRequest {
 }
 
 message DeviceAuthenticationResponse {
-    bool is_verified = 1;
-    bytes block_hash = 2;
+    bytes block_hash = 1;
 }
 
 // AuthenticationEntry is a single record in authentication table
@@ -26,4 +25,13 @@ message AuthenticationEntry {
     bytes cluster_head_id = 2;
     bytes block_hash = 3;
     uint64 block_index = 4;
+}
+
+message VerifyDeviceRequest {
+    bytes device_id = 1;
+    bytes block_hash = 2;
+}
+
+message VerifyDeviceResponse {
+    bool is_verified = 1;
 }

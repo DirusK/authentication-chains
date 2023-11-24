@@ -4,10 +4,10 @@
 
 package types
 
-func NewMessage() *Message {
+func NewMessage(senderID, receiverID, data []byte) *Message {
 	return &Message{
-		SenderId:   nil,
-		ReceiverId: nil,
-		Data:       nil,
+		SenderId:   senderID,
+		ReceiverId: receiverID,
+		Data:       data,
 	}
 }

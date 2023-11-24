@@ -135,6 +135,21 @@ func (c cipher) Decrypt(cipherText []byte) ([]byte, error) {
 	return plainText, nil
 }
 
+// DecryptContent decrypts the given Content.
+func (c cipher) DecryptContent(cipherText []byte) (*types.Content, error) {
+	plainText, err := c.Decrypt(cipherText)
+	if err != nil {
+		return nil, err
+	}
+
+	content := new(types.Content)
+	if err = proto.Unmarshal(plainText, content); err != nil {
+		return nil, err
+	}
+
+	return content, nil
+}
+
 // Sign signs the given data using the private key.
 func (c cipher) Sign(data []byte) ([]byte, error) {
 	// In order to generate the signature, we provide a random number generator,

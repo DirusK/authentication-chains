@@ -6,7 +6,6 @@ package node
 
 import (
 	"context"
-	"errors"
 
 	"github.com/DirusK/utils/log"
 	"github.com/alitto/pond"
@@ -29,6 +28,8 @@ type (
 		db         *nutsdb.DB
 		logger     log.Logger
 		workerPool *pond.WorkerPool
+
+		deviceID []byte
 
 		genesisBlockHash []byte
 		authBlockHash    []byte
@@ -58,6 +59,7 @@ func New(cfg config.Node, db *nutsdb.DB, workerPool *pond.WorkerPool, logger log
 		db:         db,
 		logger:     logger.With("node"),
 		workerPool: workerPool,
+		deviceID:   cipher.SerializePublicKey(),
 	}, nil
 }
 
@@ -74,64 +76,8 @@ func (n *Node) Init(ctx context.Context) error {
 	}
 }
 
-// MineBlock mines a new block.
-func (n *Node) MineBlock(ctx context.Context) error {
-	ctx, logger := n.logger.StartTrace(ctx, "mine block")
-	defer logger.FinishTrace()
-
-	block, err := n.chain.CreateBlock()
-	if err != nil {
-		if errors.Is(err, blockchain.ErrEmptyMemPool) {
-			logger.Debug("empty mem-pool")
-			return nil
-		}
-
-		return err
-	}
-
-	if n.clusterNodes != nil {
-		peers := n.clusterNodes.GetAll()
-
-		for _, node := range peers {
-			response, err := node.Client.SendBlock(ctx, &types.BlockValidationRequest{Block: block})
-			if err != nil {
-				logger.Errorf("send block to node %s: %s", node.Name, err)
-				return err
-			}
-
-			if !response.IsValid {
-				logger.Errorf("validation by node %s: block %x is not valid", node.Name, block.Hash)
-				return blockchain.ErrBlockValidation
-			}
-		}
-	}
-
-	if n.clusterHead != nil {
-		response, err := n.clusterHead.Client.SendBlock(ctx, &types.BlockValidationRequest{Block: block})
-		if err != nil {
-			logger.Errorf("send block to cluster head: %s", err)
-			return err
-		}
-
-		if !response.IsValid {
-			logger.Errorf("validation by cluster head %s: block %x is not valid", n.clusterHead.Name, block.Hash)
-			return blockchain.ErrBlockValidation
-		}
-	}
-
-	if err = n.chain.AddBlock(block); err != nil {
-		return err
-	}
-
-	if err = n.addAuthenticationEntry(block, n.cfg.Level); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 // Sync syncs blocks from the cluster.
-func (n *Node) Sync(ctx context.Context) error {
+func (n *Node) Sync(ctx context.Context) {
 	ctx, logger := n.logger.StartTrace(ctx, "sync")
 	defer logger.FinishTrace()
 
@@ -150,6 +96,4 @@ func (n *Node) Sync(ctx context.Context) error {
 			}
 		}
 	}
-
-	return nil
 }

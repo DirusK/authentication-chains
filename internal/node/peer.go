@@ -74,3 +74,19 @@ func (p *Peers) Add(peer *Peer) {
 
 	p.Peers = append(p.Peers, peer)
 }
+
+func (p *Peers) ToProto() []*types.Peer {
+	peers := make([]*types.Peer, len(p.Peers))
+
+	for i, peer := range p.Peers {
+		peers[i] = &types.Peer{
+			Name:          peer.Name,
+			DeviceId:      peer.DeviceID,
+			ClusterHeadId: peer.ClusterHeadID,
+			GrpcAddress:   peer.GRPCAddress,
+			Level:         peer.Level,
+		}
+	}
+
+	return peers
+}
