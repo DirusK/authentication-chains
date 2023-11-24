@@ -12,14 +12,14 @@ import (
 
 // Cipher - describe an interface for working with crypto operations.
 type Cipher interface {
-	// PublicKey returns the public rsa key.
-	PublicKey() *rsa.PublicKey
+	// GetPublicKey returns the public rsa key.
+	GetPublicKey() *rsa.PublicKey
 	// SerializePublicKey serializes the public key.
 	SerializePublicKey() []byte
 	// SerializePrivateKey serializes the private key.
 	SerializePrivateKey() []byte
-	// PrivateKey returns the private rsa key.
-	PrivateKey() *rsa.PrivateKey
+	// GetPrivateKey returns the private rsa key.
+	GetPrivateKey() *rsa.PrivateKey
 	// Encrypt encrypts the given plain text using the public key.
 	Encrypt(plainText []byte) ([]byte, error)
 	// Decrypt decrypts the given cipher text using the private key.

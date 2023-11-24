@@ -191,10 +191,19 @@ func initClient(ctx context.Context, address string) (types.NodeClient, error) {
 	return types.NewNodeClient(conn), nil
 }
 
+func (n *Node) getClusterHeadDeviceID() []byte {
+	var clusterHeadID []byte
+	if n.clusterHead != nil {
+		clusterHeadID = n.clusterHead.DeviceID
+	}
+
+	return clusterHeadID
+}
+
 func (n *Node) createDAR() (*types.DeviceAuthenticationRequest, error) {
 	dar := &types.DeviceAuthenticationRequest{
 		DeviceId:      n.deviceID,
-		ClusterHeadId: n.clusterHead.DeviceID,
+		ClusterHeadId: n.getClusterHeadDeviceID(),
 	}
 
 	if err := n.cipher.SignDAR(dar); err != nil {
@@ -207,6 +216,12 @@ func (n *Node) createDAR() (*types.DeviceAuthenticationRequest, error) {
 func (n *Node) initMaster(ctx context.Context) error {
 	ctx, logger := n.logger.StartTrace(ctx, "init master")
 	defer logger.FinishTrace()
+
+	firstBlock := n.chain.GetFirstBlock()
+	if firstBlock != nil {
+		n.authBlockHash = firstBlock.Hash
+		return nil
+	}
 
 	dar, err := n.createDAR()
 	if err != nil {
@@ -253,54 +268,62 @@ func (n *Node) initPeers(ctx context.Context) error {
 		client,
 	)
 
-	dar, err := n.createDAR()
-	if err != nil {
-		logger.Errorf("create dar: %s", err)
-		return err
-	}
+	firstBlock := n.chain.GetFirstBlock()
 
-	registerResponse, err := n.clusterHead.Client.RegisterNode(ctx, &types.NodeRegistrationRequest{
-		Node: &types.Peer{
-			Name:          n.cfg.Name,
-			Level:         n.cfg.Level,
-			DeviceId:      n.deviceID,
-			ClusterHeadId: n.clusterHead.ClusterHeadID,
-			GrpcAddress:   n.cfg.GRPC.Address,
-		},
-		Dar: dar,
-	})
-	if err != nil {
-		logger.Errorf("register node: %s", err)
-		return ErrInvalidDAR
-	}
+	switch firstBlock != nil {
+	case true:
+		n.authBlockHash = firstBlock.Hash
 
-	for _, peer := range registerResponse.GetPeers() {
-		client, err = initClient(ctx, peer.GrpcAddress)
+	case false:
+		dar, err := n.createDAR()
 		if err != nil {
-			logger.Errorf("init peer client: %s", err)
+			logger.Errorf("create dar: %s", err)
 			return err
 		}
 
-		n.clusterNodes.Add(NewPeer(
-			status.Peer.Name,
-			status.Peer.DeviceId,
-			status.Peer.ClusterHeadId,
-			status.Peer.GrpcAddress,
-			status.Peer.Level,
-			client))
+		registerResponse, err := n.clusterHead.Client.RegisterNode(ctx, &types.NodeRegistrationRequest{
+			Node: &types.Peer{
+				Name:          n.cfg.Name,
+				Level:         n.cfg.Level,
+				DeviceId:      n.deviceID,
+				ClusterHeadId: n.clusterHead.ClusterHeadID,
+				GrpcAddress:   n.cfg.GRPC.Address,
+			},
+			Dar: dar,
+		})
+		if err != nil {
+			logger.Errorf("register node: %s", err)
+			return ErrInvalidDAR
+		}
+
+		for _, peer := range registerResponse.GetPeers() {
+			client, err = initClient(ctx, peer.GrpcAddress)
+			if err != nil {
+				logger.Errorf("init peer client: %s", err)
+				return err
+			}
+
+			n.clusterNodes.Add(NewPeer(
+				status.Peer.Name,
+				status.Peer.DeviceId,
+				status.Peer.ClusterHeadId,
+				status.Peer.GrpcAddress,
+				status.Peer.Level,
+				client))
+		}
+
+		n.Sync(ctx)
+
+		n.chain.SetGenesisHash(registerResponse.GenesisHash)
+
+		block, err := n.mineBlock(ctx, dar)
+		if err != nil {
+			logger.Errorf("mine block: %s", err)
+			return err
+		}
+
+		n.authBlockHash = block.Hash
 	}
-
-	n.Sync(ctx)
-
-	n.chain.SetGenesisHash(registerResponse.GenesisHash)
-
-	block, err := n.mineBlock(ctx, dar)
-	if err != nil {
-		logger.Errorf("mine block: %s", err)
-		return err
-	}
-
-	n.authBlockHash = block.Hash
 
 	return nil
 }
@@ -370,13 +393,8 @@ func (n *Node) validateBlock(ctx context.Context, block *types.Block) error {
 	ctx, logger := n.logger.StartTrace(ctx, "validate block")
 	defer logger.FinishTrace()
 
-	var clusterHeadID []byte
-	if n.clusterHead != nil {
-		clusterHeadID = n.clusterHead.DeviceID
-	}
-
 	if !bytes.Equal(block.Dar.ClusterHeadId, n.deviceID) ||
-		bytes.Equal(block.Dar.ClusterHeadId, clusterHeadID) {
+		bytes.Equal(block.Dar.ClusterHeadId, n.getClusterHeadDeviceID()) {
 		return fmt.Errorf("%w: invalid cluster head", ErrBlockValidation)
 	}
 

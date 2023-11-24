@@ -17,7 +17,6 @@ type (
 	Config struct {
 		Node       Node       `yaml:"node" validate:"required"`
 		Storage    Storage    `yaml:"storage" validate:"required"`
-		GRPC       GRPC       `yaml:"grpc" validate:"required"`
 		Logger     log.Config `yaml:"logger" validate:"required"`
 		WorkerPool WorkerPool `yaml:"worker-pool" validate:"required"`
 		Schedulers Schedulers `yaml:"schedulers" validate:"required"`
@@ -39,7 +38,7 @@ type (
 
 	// Storage is a node database configuration.
 	Storage struct {
-		Directory string `yaml:"directory" validate:"required,dirpath"`
+		Directory string `yaml:"directory" validate:"required"`
 	}
 
 	// GRPC is a node server configuration.
@@ -50,9 +49,9 @@ type (
 
 	// Scheduler is a scheduler configuration.
 	Scheduler struct {
-		Enabled          bool          `yaml:"enabled" validate:"required"`
+		Enabled          bool          `yaml:"enabled"`
 		Interval         time.Duration `yaml:"interval" validate:"required"`
-		StartImmediately bool          `yaml:"start-immediately" validate:"required"`
+		StartImmediately bool          `yaml:"start-immediately"`
 	}
 
 	// WorkerPool defines configuration for workers.

@@ -13,7 +13,7 @@ import (
 
 // serveGRPCServer starts gRPC server.
 func serveGRPCServer(ctx context.Context, app *App) {
-	lis, err := net.Listen("tcp", app.cfg.GRPC.Address)
+	lis, err := net.Listen("tcp", app.cfg.Node.GRPC.Address)
 	if err != nil {
 		app.logger.Fatalf("failed to listen: %v", err)
 	}

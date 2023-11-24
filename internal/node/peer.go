@@ -72,6 +72,13 @@ func (p *Peers) Add(peer *Peer) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
+	for i := 0; i < len(p.Peers); i++ {
+		if p.Peers[i].GRPCAddress == peer.GRPCAddress {
+			p.Peers[i] = peer
+			return
+		}
+	}
+
 	p.Peers = append(p.Peers, peer)
 }
 

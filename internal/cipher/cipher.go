@@ -38,8 +38,8 @@ const (
 
 // cipher is an implementation of the Cipher interface
 type cipher struct {
-	privateKey *rsa.PrivateKey
-	publicKey  *rsa.PublicKey
+	PrivateKey *rsa.PrivateKey
+	PublicKey  *rsa.PublicKey
 }
 
 func New(db *nutsdb.DB) (Cipher, error) {
@@ -68,8 +68,8 @@ func New(db *nutsdb.DB) (Cipher, error) {
 	}
 
 	c = cipher{
-		privateKey: privateKey,
-		publicKey:  &privateKey.PublicKey,
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
 	}
 
 	if err = db.Update(func(tx *nutsdb.Tx) error {
@@ -81,14 +81,14 @@ func New(db *nutsdb.DB) (Cipher, error) {
 	return c, nil
 }
 
-// PublicKey returns the public rsa key.
-func (c cipher) PublicKey() *rsa.PublicKey {
-	return c.publicKey
+// GetPublicKey returns the public rsa key.
+func (c cipher) GetPublicKey() *rsa.PublicKey {
+	return c.PublicKey
 }
 
 // SerializePublicKey serializes the public key.
 func (c cipher) SerializePublicKey() []byte {
-	publicKeyBytes := x509.MarshalPKCS1PublicKey(c.publicKey)
+	publicKeyBytes := x509.MarshalPKCS1PublicKey(c.PublicKey)
 
 	b := pem.Block{
 		Type:  typeRSAPublicKey,
@@ -100,7 +100,7 @@ func (c cipher) SerializePublicKey() []byte {
 
 // SerializePrivateKey serializes the private key.
 func (c cipher) SerializePrivateKey() []byte {
-	privateKeyBytes := x509.MarshalPKCS1PrivateKey(c.privateKey)
+	privateKeyBytes := x509.MarshalPKCS1PrivateKey(c.PrivateKey)
 
 	b := pem.Block{
 		Type:  typeRSAPrivateKey,
@@ -110,14 +110,14 @@ func (c cipher) SerializePrivateKey() []byte {
 	return pem.EncodeToMemory(&b)
 }
 
-// PrivateKey returns the private rsa key.
-func (c cipher) PrivateKey() *rsa.PrivateKey {
-	return c.privateKey
+// GetPrivateKey returns the private rsa key.
+func (c cipher) GetPrivateKey() *rsa.PrivateKey {
+	return c.PrivateKey
 }
 
 // Encrypt encrypts the given plain text using the public key.
 func (c cipher) Encrypt(plainText []byte) ([]byte, error) {
-	cipherText, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, c.publicKey, plainText, nil)
+	cipherText, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, c.PublicKey, plainText, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +127,7 @@ func (c cipher) Encrypt(plainText []byte) ([]byte, error) {
 
 // Decrypt decrypts the given cipher text using the private key.
 func (c cipher) Decrypt(cipherText []byte) ([]byte, error) {
-	plainText, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, c.privateKey, cipherText, nil)
+	plainText, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, c.PrivateKey, cipherText, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +155,7 @@ func (c cipher) Sign(data []byte) ([]byte, error) {
 	// In order to generate the signature, we provide a random number generator,
 	// our private key, the hashing algorithm that we used, and the hash sum
 	// of our message
-	return rsa.SignPSS(rand.Reader, c.privateKey, crypto.SHA256, Hash(data), nil)
+	return rsa.SignPSS(rand.Reader, c.PrivateKey, crypto.SHA256, Hash(data), nil)
 }
 
 // VerifySignature verifies the given signature against the given data using the public key.
@@ -163,7 +163,7 @@ func (c cipher) VerifySignature(signature []byte, data []byte) error {
 	// To verify the signature, we provide the public key, the hashing algorithm
 	// the hash sum of our message and the signature we generated previously
 	// there is an optional "options" parameter which can omit for now
-	return rsa.VerifyPSS(c.publicKey, crypto.SHA256, Hash(data), signature, nil)
+	return rsa.VerifyPSS(c.PublicKey, crypto.SHA256, Hash(data), signature, nil)
 }
 
 // Serialize serializes the Cipher into bytes.
@@ -212,16 +212,20 @@ func (c cipher) VerifyDAR(dar *types.DeviceAuthenticationRequest) error {
 
 // HashBlock without a hash field.
 func (c cipher) HashBlock(block *types.Block) ([]byte, error) {
-	hash := block.Hash
-	block.Hash = nil
+	bc := &types.Block{
+		Hash:      nil,
+		PrevHash:  block.PrevHash,
+		Index:     block.Index,
+		Dar:       block.Dar,
+		Timestamp: block.Timestamp,
+	}
 
-	data, err := proto.Marshal(block)
+	data, err := proto.Marshal(bc)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal block: %w", err)
 	}
 
 	result := Hash(data)
-	block.Hash = hash
 
 	return result, nil
 }

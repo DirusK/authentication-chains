@@ -69,7 +69,7 @@ func (a *App) initWorkerPool(ctx context.Context) {
 }
 
 func (a *App) initGRPCServer() {
-	a.grpcServer = grpc.NewServer()
+	a.grpcServer = grpc.NewServer(grpc.ConnectionTimeout(a.cfg.Node.GRPC.Timeout))
 }
 
 func (a *App) initScheduler() {

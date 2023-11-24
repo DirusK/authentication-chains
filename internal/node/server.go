@@ -21,17 +21,12 @@ func (n *Node) GetStatus(ctx context.Context, _ *types.StatusRequest) (*types.St
 
 	lastBlock := n.chain.GetLastBlock()
 
-	var clusterHeadID []byte
-	if n.clusterHead != nil {
-		clusterHeadID = n.clusterHead.DeviceID
-	}
-
 	return &types.StatusResponse{
 		Peer: &types.Peer{
 			Name:          n.cfg.Name,
 			Level:         n.cfg.Level,
 			DeviceId:      n.deviceID,
-			ClusterHeadId: clusterHeadID,
+			ClusterHeadId: n.getClusterHeadDeviceID(),
 			GrpcAddress:   n.cfg.GRPC.Address,
 		},
 		LastBlockIndex: lastBlock.Index,

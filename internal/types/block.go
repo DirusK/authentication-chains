@@ -4,8 +4,6 @@ import (
 	"time"
 
 	"google.golang.org/protobuf/proto"
-
-	"authentication-chains/internal/cipher"
 )
 
 func NewBlock(prevHash []byte, index uint64, dar *DeviceAuthenticationRequest) *Block {
@@ -16,13 +14,6 @@ func NewBlock(prevHash []byte, index uint64, dar *DeviceAuthenticationRequest) *
 		Dar:       dar,
 		Timestamp: time.Now().Unix(),
 	}
-
-	data, err := proto.Marshal(block)
-	if err != nil {
-		panic(err)
-	}
-
-	block.Hash = cipher.Hash(data)
 
 	return block
 }

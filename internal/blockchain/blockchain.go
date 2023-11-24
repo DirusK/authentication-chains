@@ -10,7 +10,9 @@ import (
 	"sync"
 
 	"github.com/nutsdb/nutsdb"
+	"google.golang.org/protobuf/proto"
 
+	"authentication-chains/internal/cipher"
 	"authentication-chains/internal/types"
 )
 
@@ -34,6 +36,9 @@ func New(db *nutsdb.DB) (Blockchain, error) {
 
 	if err := db.View(func(tx *nutsdb.Tx) error {
 		iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: true})
+		if !iterator.Next() {
+			return nil
+		}
 
 		data, err := iterator.Value()
 		if err != nil {
@@ -82,11 +87,21 @@ func (b *blockchain) CreateBlock(dar *types.DeviceAuthenticationRequest) (*types
 	b.mutex.RLock()
 	defer b.mutex.RUnlock()
 
+	var block *types.Block
 	if b.lastBlock != nil {
-		return types.NewBlock(b.lastBlock.Hash, b.lastBlock.Index, dar), nil
+		block = types.NewBlock(b.lastBlock.Hash, b.lastBlock.Index, dar)
+	} else {
+		block = types.NewBlock(b.genesisHash, 0, dar)
 	}
 
-	return types.NewBlock(b.genesisHash, 0, dar), nil
+	data, err := proto.Marshal(block)
+	if err != nil {
+		return nil, err
+	}
+
+	block.Hash = cipher.Hash(data)
+
+	return block, nil
 }
 
 // AddBlock adds a block to the chain.
