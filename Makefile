@@ -23,3 +23,6 @@ test:
 
 run:
 	go run main.go
+
+start-alice:
+	go run . start -c alice.yaml

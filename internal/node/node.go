@@ -91,6 +91,8 @@ func (n *Node) Sync(ctx context.Context) {
 		}
 
 		if status.LastBlockIndex > lastBlock.Index {
+			logger.Infof("node sync with peer %s from %d block to %d block", peer.Name, lastBlock.Index+1, status.LastBlockIndex)
+
 			if err = n.syncBlocks(ctx, peer, lastBlock.Index+1, status.LastBlockIndex); err != nil {
 				continue
 			}

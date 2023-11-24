@@ -10,6 +10,8 @@ import (
 	"github.com/DirusK/utils/log"
 )
 
+const DefaultPath = "config/config.yaml"
+
 type (
 	// Config is a node configuration.
 	Config struct {
@@ -48,9 +50,9 @@ type (
 
 	// Scheduler is a scheduler configuration.
 	Scheduler struct {
-		Enabled   bool          `yaml:"enabled" validate:"required"`
-		Interval  time.Duration `yaml:"interval" validate:"required"`
-		Immediate bool          `yaml:"immediate" validate:"required"`
+		Enabled          bool          `yaml:"enabled" validate:"required"`
+		Interval         time.Duration `yaml:"interval" validate:"required"`
+		StartImmediately bool          `yaml:"start-immediately" validate:"required"`
 	}
 
 	// WorkerPool defines configuration for workers.

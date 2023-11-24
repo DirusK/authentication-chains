@@ -6,11 +6,13 @@ package app
 
 import (
 	"context"
+	"time"
 
 	utils "github.com/DirusK/utils/config"
 	"github.com/DirusK/utils/log"
 	"github.com/DirusK/utils/validator"
 	"github.com/alitto/pond"
+	"github.com/go-co-op/gocron"
 	"github.com/nutsdb/nutsdb"
 	"google.golang.org/grpc"
 
@@ -49,11 +51,15 @@ func (a *App) initStorage() {
 	}
 }
 
-func (a *App) initNode() {
+func (a *App) initNode(ctx context.Context) {
 	var err error
 
 	a.node, err = node.New(a.cfg.Node, a.db, a.workerPool, a.logger)
 	if err != nil {
+		a.logger.Fatal(err)
+	}
+
+	if err = a.node.Init(ctx); err != nil {
 		a.logger.Fatal(err)
 	}
 }
@@ -64,4 +70,8 @@ func (a *App) initWorkerPool(ctx context.Context) {
 
 func (a *App) initGRPCServer() {
 	a.grpcServer = grpc.NewServer()
+}
+
+func (a *App) initScheduler() {
+	a.scheduler = gocron.NewScheduler(time.UTC)
 }

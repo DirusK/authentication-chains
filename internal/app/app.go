@@ -10,6 +10,7 @@ import (
 	"github.com/DirusK/utils/log"
 	"github.com/DirusK/utils/validator"
 	"github.com/alitto/pond"
+	"github.com/go-co-op/gocron"
 	"github.com/nutsdb/nutsdb"
 	"google.golang.org/grpc"
 
@@ -34,6 +35,7 @@ type (
 		grpcServer *grpc.Server
 		logger     log.Logger
 		workerPool *pond.WorkerPool
+		scheduler  *gocron.Scheduler
 		node       *node.Node
 	}
 )
@@ -54,8 +56,13 @@ func New(ctx context.Context, configPath string) *App {
 	app.initLogger()
 	app.initStorage()
 	app.initWorkerPool(ctx)
-	app.initNode()
+	app.initScheduler()
+	app.initNode(ctx)
 	app.initGRPCServer()
 
 	return app
+}
+
+func (a *App) Run() {
+	a.runWorkers()
 }

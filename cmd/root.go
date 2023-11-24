@@ -5,21 +5,21 @@
 package cmd
 
 import (
+	"context"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/spf13/cobra"
 )
 
+// ctx is the global context of the application.
+var ctx = registerGracefulHandle()
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "authentication-chains",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Chain clusters for authentication purposes.",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
@@ -43,5 +43,20 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+// registerGracefulHandle registers a graceful shutdown handler for the application.
+func registerGracefulHandle() context.Context {
+	gracefulCtx, cancel := context.WithCancel(context.Background())
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, syscall.SIGHUP, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		cancel()
+	}()
+
+	return gracefulCtx
 }

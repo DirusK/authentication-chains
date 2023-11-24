@@ -1,6 +1,6 @@
 node:
   name: "alice"
-  level: 0
+  level: 1
   genesis-hash: "0x0000000"
   cluster-head-grpc-address:
   grpc:
@@ -25,9 +25,9 @@ schedulers:
   sync:
     enabled: true
     interval: 1m
-    immediate: true
+    start-immediately: false
 
   explore:
     enabled: true
     interval: 1h
-    immediate: true
+    start-immediately: true

@@ -9,6 +9,17 @@ import (
 	"sync"
 )
 
+type worker func(ctx context.Context, a *App)
+
+func (a *App) initWorkers() []worker {
+	workers := []worker{
+		serveGRPCServer,
+		serveSchedulers,
+	}
+
+	return workers
+}
+
 // runWorkers run workers.
 func (a *App) runWorkers() {
 	workers := a.initWorkers()
@@ -17,8 +28,8 @@ func (a *App) runWorkers() {
 	wg.Add(len(workers))
 
 	for _, work := range workers {
-		go func(ctx context.Context, work func(context.Context, *App), t *App) {
-			work(ctx, t)
+		go func(ctx context.Context, work func(context.Context, *App), app *App) {
+			work(ctx, app)
 			wg.Done()
 		}(a.ctx, work, a)
 	}
