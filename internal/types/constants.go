@@ -14,8 +14,15 @@ const (
 	BucketAuthenticationTable = "authentication-table"
 	// BucketCipher is the name of the bucket that will store cipher.
 	BucketCipher = "cipher"
+	// BucketClusterHead is the name of the bucket that will store cluster head.
+	BucketClusterHead = "cluster-head"
+	// BucketClusterNodes is the name of the bucket that will store cluster nodes.
+	BucketClusterNodes = "cluster-nodes"
+	// BucketChildrenNodes is the name of the bucket that will store children nodes.
+	BucketChildrenNodes = "children-nodes"
 )
 
 var (
-	KeyCipher = []byte("cipher")
+	KeyCipher      = []byte("cipher")
+	KeyClusterHead = []byte("cluster-head")
 )

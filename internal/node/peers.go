@@ -40,6 +40,16 @@ func NewPeer(name string, deviceID, clusterHeadID []byte, GRPCAddress string, le
 	}
 }
 
+func (p Peer) ToProto() *types.Peer {
+	return &types.Peer{
+		Name:          p.Name,
+		DeviceId:      p.DeviceID,
+		ClusterHeadId: p.ClusterHeadID,
+		GrpcAddress:   p.GRPCAddress,
+		Level:         p.Level,
+	}
+}
+
 // NewPeers creates a new peers instance.
 func NewPeers(peers ...*Peer) *Peers {
 	return &Peers{
@@ -57,14 +67,6 @@ func (p *Peers) GetAll() []*Peer {
 	copy(peers, p.Peers)
 
 	return peers
-}
-
-// Set sets a list of peers.
-func (p *Peers) Set(peers []*Peer) {
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
-
-	p.Peers = peers
 }
 
 // Add adds a peer to the list.
@@ -86,13 +88,7 @@ func (p *Peers) ToProto() []*types.Peer {
 	peers := make([]*types.Peer, len(p.Peers))
 
 	for i, peer := range p.Peers {
-		peers[i] = &types.Peer{
-			Name:          peer.Name,
-			DeviceId:      peer.DeviceID,
-			ClusterHeadId: peer.ClusterHeadID,
-			GrpcAddress:   peer.GRPCAddress,
-			Level:         peer.Level,
-		}
+		peers[i] = peer.ToProto()
 	}
 
 	return peers

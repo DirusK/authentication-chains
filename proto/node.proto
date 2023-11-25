@@ -33,7 +33,6 @@ service Node {
 
 message NodeRegistrationRequest {
     Peer node = 1;
-    DeviceAuthenticationRequest dar = 2;
 }
 
 message NodeRegistrationResponse {

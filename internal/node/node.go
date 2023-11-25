@@ -41,7 +41,7 @@ type (
 )
 
 // New creates a new node instance.
-func New(cfg config.Node, db *nutsdb.DB, workerPool *pond.WorkerPool, logger log.Logger) (*Node, error) {
+func New(ctx context.Context, cfg config.Node, db *nutsdb.DB, workerPool *pond.WorkerPool, logger log.Logger) (*Node, error) {
 	chain, err := blockchain.New(db)
 	if err != nil {
 		return nil, err
@@ -52,14 +52,21 @@ func New(cfg config.Node, db *nutsdb.DB, workerPool *pond.WorkerPool, logger log
 		return nil, err
 	}
 
+	clusterHead, _ := initPeer(ctx, db, types.BucketClusterHead)
+	clusterNodes, _ := initPeers(ctx, db, types.BucketClusterNodes)
+	childrenNodes, _ := initPeers(ctx, db, types.BucketChildrenNodes)
+
 	return &Node{
-		cfg:        cfg,
-		cipher:     cipher,
-		chain:      chain,
-		db:         db,
-		logger:     logger.With("node"),
-		workerPool: workerPool,
-		deviceID:   cipher.SerializePublicKey(),
+		cfg:           cfg,
+		cipher:        cipher,
+		chain:         chain,
+		db:            db,
+		logger:        logger.With("node"),
+		workerPool:    workerPool,
+		deviceID:      cipher.SerializePublicKey(),
+		clusterHead:   clusterHead,
+		clusterNodes:  clusterNodes,
+		childrenNodes: childrenNodes,
 	}, nil
 }
 

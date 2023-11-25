@@ -54,7 +54,7 @@ func (a *App) initStorage() {
 func (a *App) initNode(ctx context.Context) {
 	var err error
 
-	a.node, err = node.New(a.cfg.Node, a.db, a.workerPool, a.logger)
+	a.node, err = node.New(ctx, a.cfg.Node, a.db, a.workerPool, a.logger)
 	if err != nil {
 		a.logger.Fatal(err)
 	}

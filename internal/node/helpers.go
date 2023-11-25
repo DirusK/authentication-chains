@@ -7,6 +7,7 @@ package node
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/nutsdb/nutsdb"
@@ -63,15 +64,42 @@ func (n *Node) mineBlock(ctx context.Context, dar *types.DeviceAuthenticationReq
 		return nil, err
 	}
 
-	if err = n.addAuthenticationEntry(block, n.cfg.Level); err != nil {
+	if err = n.addAuthenticationEntry(ctx, block, n.cfg.Level); err != nil {
 		return nil, err
 	}
 
 	return block, nil
 }
 
+func (n *Node) getAuthenticationEntry(ctx context.Context, deviceID []byte) (*types.AuthenticationEntry, error) {
+	ctx, logger := n.logger.StartTrace(ctx, "get authentication entry")
+	defer logger.FinishTrace()
+
+	var auth *types.AuthenticationEntry
+
+	if err := n.db.View(func(tx *nutsdb.Tx) error {
+		data, err := tx.Get(bucketAuthTableLevel(n.cfg.Level), deviceID)
+		if err != nil {
+			return err
+		}
+
+		if err = proto.Unmarshal(data.Value, auth); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return auth, nil
+}
+
 // addAuthenticationEntry registers a device in authentication table.
-func (n *Node) addAuthenticationEntry(block *types.Block, level uint32) error {
+func (n *Node) addAuthenticationEntry(ctx context.Context, block *types.Block, level uint32) error {
+	ctx, logger := n.logger.StartTrace(ctx, "add authentication entry")
+	defer logger.FinishTrace()
+
 	if n.cfg.Level < level {
 		return fmt.Errorf("can't add entry from upper blockchain: node level %d < entry level %d", n.cfg.Level, level)
 	}
@@ -217,9 +245,9 @@ func (n *Node) initMaster(ctx context.Context) error {
 	ctx, logger := n.logger.StartTrace(ctx, "init master")
 	defer logger.FinishTrace()
 
-	firstBlock := n.chain.GetFirstBlock()
-	if firstBlock != nil {
-		n.authBlockHash = firstBlock.Hash
+	auth, err := n.getAuthenticationEntry(ctx, n.deviceID)
+	if err == nil {
+		n.authBlockHash = auth.BlockHash
 		return nil
 	}
 
@@ -247,82 +275,96 @@ func (n *Node) initPeers(ctx context.Context) error {
 	ctx, logger := n.logger.StartTrace(ctx, "init peers")
 	defer logger.FinishTrace()
 
-	client, err := initClient(ctx, n.cfg.ClusterHeadGRPCAddress)
-	if err != nil {
-		logger.Errorf("init cluster head client: %s", err)
-		return err
-	}
-
-	status, err := client.GetStatus(ctx, &types.StatusRequest{})
-	if err != nil {
-		logger.Errorf("get cluster head status: %s", err)
-		return err
-	}
-
-	n.clusterHead = NewPeer(
-		status.Peer.Name,
-		status.Peer.DeviceId,
-		status.Peer.ClusterHeadId,
-		status.Peer.GrpcAddress,
-		status.Peer.Level,
-		client,
-	)
-
-	firstBlock := n.chain.GetFirstBlock()
-
-	switch firstBlock != nil {
-	case true:
-		n.authBlockHash = firstBlock.Hash
-
-	case false:
-		dar, err := n.createDAR()
+	if n.clusterHead != nil {
+		client, err := initClient(ctx, n.cfg.ClusterHeadGRPCAddress)
 		if err != nil {
-			logger.Errorf("create dar: %s", err)
+			logger.Errorf("init cluster head client: %s", err)
 			return err
 		}
 
-		registerResponse, err := n.clusterHead.Client.RegisterNode(ctx, &types.NodeRegistrationRequest{
-			Node: &types.Peer{
-				Name:          n.cfg.Name,
-				Level:         n.cfg.Level,
-				DeviceId:      n.deviceID,
-				ClusterHeadId: n.clusterHead.ClusterHeadID,
-				GrpcAddress:   n.cfg.GRPC.Address,
-			},
-			Dar: dar,
-		})
+		status, err := client.GetStatus(ctx, &types.StatusRequest{})
 		if err != nil {
-			logger.Errorf("register node: %s", err)
-			return ErrInvalidDAR
-		}
-
-		for _, peer := range registerResponse.GetPeers() {
-			client, err = initClient(ctx, peer.GrpcAddress)
-			if err != nil {
-				logger.Errorf("init peer client: %s", err)
-				return err
-			}
-
-			n.clusterNodes.Add(NewPeer(
-				status.Peer.Name,
-				status.Peer.DeviceId,
-				status.Peer.ClusterHeadId,
-				status.Peer.GrpcAddress,
-				status.Peer.Level,
-				client))
-		}
-
-		n.Sync(ctx)
-
-		n.chain.SetGenesisHash(registerResponse.GenesisHash)
-
-		block, err := n.mineBlock(ctx, dar)
-		if err != nil {
-			logger.Errorf("mine block: %s", err)
+			logger.Errorf("get cluster head status: %s", err)
 			return err
 		}
 
-		n.authBlockHash = block.Hash
+		if err = n.addPeer(ctx, NewPeer(
+			status.Peer.Name,
+			status.Peer.DeviceId,
+			status.Peer.ClusterHeadId,
+			status.Peer.GrpcAddress,
+			status.Peer.Level,
+			client,
+		)); err != nil {
+			return err
+		}
+	}
+
+	if err := n.registerNode(ctx); err != nil {
+		return err
+	}
+
+	n.Sync(ctx)
+
+	auth, err := n.getAuthenticationEntry(ctx, n.deviceID)
+	if err == nil {
+		n.authBlockHash = auth.BlockHash
+		return nil
+	}
+
+	dar, err := n.createDAR()
+	if err != nil {
+		logger.Errorf("create dar: %s", err)
+		return err
+	}
+
+	block, err := n.mineBlock(ctx, dar)
+	if err != nil {
+		logger.Errorf("mine block: %s", err)
+		return err
+	}
+
+	n.authBlockHash = block.Hash
+
+	return nil
+}
+
+func (n *Node) registerNode(ctx context.Context) error {
+	ctx, logger := n.logger.StartTrace(ctx, "register node")
+	defer logger.FinishTrace()
+
+	registerResponse, err := n.clusterHead.Client.RegisterNode(ctx, &types.NodeRegistrationRequest{
+		Node: &types.Peer{
+			Name:          n.cfg.Name,
+			Level:         n.cfg.Level,
+			DeviceId:      n.deviceID,
+			ClusterHeadId: n.clusterHead.ClusterHeadID,
+			GrpcAddress:   n.cfg.GRPC.Address,
+		},
+	})
+	if err != nil {
+		logger.Errorf("register node: %s", err)
+		return ErrInvalidDAR
+	}
+
+	n.chain.SetGenesisHash(registerResponse.GenesisHash)
+
+	for _, peer := range registerResponse.GetPeers() {
+		client, err := initClient(ctx, peer.GrpcAddress)
+		if err != nil {
+			logger.Errorf("init peer client: %s", err)
+			return err
+		}
+
+		if err = n.addPeer(ctx, NewPeer(
+			peer.Name,
+			peer.DeviceId,
+			peer.ClusterHeadId,
+			peer.GrpcAddress,
+			peer.Level,
+			client)); err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -365,7 +407,7 @@ func (n *Node) addBlock(ctx context.Context, block *types.Block) error {
 		return err
 	}
 
-	if err := n.addAuthenticationEntry(block, n.cfg.Level); err != nil {
+	if err := n.addAuthenticationEntry(ctx, block, n.cfg.Level); err != nil {
 		logger.Errorf("add authentication entry: %s", err)
 		return err
 	}
@@ -412,6 +454,123 @@ func (n *Node) validateBlock(ctx context.Context, block *types.Block) error {
 	}
 
 	return nil
+}
+
+func (n *Node) addPeer(ctx context.Context, peer *Peer) error {
+	ctx, logger := n.logger.StartTrace(ctx, "add peer")
+	defer logger.FinishTrace()
+
+	switch {
+	case bytes.Equal(peer.ClusterHeadID, n.deviceID):
+		if err := n.db.Update(func(tx *nutsdb.Tx) error {
+			data, err := proto.Marshal(peer.ToProto())
+			if err != nil {
+				return err
+			}
+
+			return tx.Put(types.BucketChildrenNodes, peer.DeviceID, data, types.InfinityTTL)
+		}); err != nil {
+			logger.Errorf("add children peer %s: %s", peer.Name, err)
+			return err
+		}
+
+		n.childrenNodes.Add(peer)
+
+	case bytes.Equal(peer.ClusterHeadID, n.getClusterHeadDeviceID()):
+		if err := n.db.Update(func(tx *nutsdb.Tx) error {
+			data, err := proto.Marshal(peer.ToProto())
+			if err != nil {
+				return err
+			}
+
+			return tx.Put(types.BucketClusterNodes, peer.DeviceID, data, types.InfinityTTL)
+		}); err != nil {
+			logger.Errorf("add cluster node %s: %s", peer.Name, err)
+			return err
+		}
+
+		n.clusterNodes.Add(peer)
+
+	case bytes.Equal(peer.DeviceID, n.getClusterHeadDeviceID()):
+		if err := n.db.Update(func(tx *nutsdb.Tx) error {
+			data, err := proto.Marshal(peer.ToProto())
+			if err != nil {
+				return err
+			}
+
+			return tx.Put(types.BucketClusterHead, peer.DeviceID, data, types.InfinityTTL)
+		}); err != nil {
+			logger.Errorf("add cluster head %s: %s", peer.Name, err)
+			return err
+		}
+
+		n.clusterHead = peer
+
+	default:
+		logger.Errorf("invalid peer %s", peer.Name)
+		return errors.New("invalid peer")
+	}
+
+	return nil
+}
+
+// initPeer initializes a peer from the database.
+func initPeer(ctx context.Context, db *nutsdb.DB, bucket string) (*Peer, error) {
+	var peer types.Peer
+
+	if err := db.View(func(tx *nutsdb.Tx) error {
+		data, err := tx.Get(bucket, types.KeyClusterHead)
+		if err != nil {
+			return err
+		}
+
+		if err = proto.Unmarshal(data.Value, &peer); err != nil {
+			return err
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	client, err := initClient(ctx, peer.GrpcAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return NewPeer(peer.Name, peer.DeviceId, peer.ClusterHeadId, peer.GrpcAddress, peer.Level, client), nil
+}
+
+// initPeers initializes peers from the database.
+func initPeers(ctx context.Context, db *nutsdb.DB, bucket string) (*Peers, error) {
+	peers := NewPeers()
+
+	if err := db.View(func(tx *nutsdb.Tx) error {
+		entries, err := tx.GetAll(bucket)
+		if err != nil {
+			return err
+		}
+
+		for _, entry := range entries {
+			var peer types.Peer
+			if err = proto.Unmarshal(entry.Value, &peer); err != nil {
+				return err
+			}
+
+			client, err := initClient(ctx, peer.GrpcAddress)
+			if err != nil {
+				return err
+			}
+
+			peers.Add(NewPeer(peer.Name, peer.DeviceId, peer.ClusterHeadId, peer.GrpcAddress, peer.Level, client))
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return peers, nil
 }
 
 // bucketAuthTableLevel returns the name of the bucket that will store authentication table by level.

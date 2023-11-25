@@ -85,13 +85,22 @@ func (n *Node) GetPeers(ctx context.Context, request *types.PeersRequest) (*type
 	ctx, logger := n.logger.StartTrace(ctx, "get peers")
 	defer logger.FinishTrace()
 
-	if request.Level != n.cfg.Level {
+	if request.Level != n.cfg.Level || request.Level != n.cfg.Level-1 {
 		return nil, fmt.Errorf("level %d is not supported", request.Level)
+	}
+
+	var nodes []*Peer
+
+	switch {
+	case request.Level == n.cfg.Level:
+		nodes = n.clusterNodes.GetAll()
+	case request.Level == n.cfg.Level-1:
+		nodes = n.childrenNodes.GetAll()
 	}
 
 	peers := make([]*types.Peer, 0, len(n.clusterNodes.GetAll()))
 
-	for _, node := range n.clusterNodes.GetAll() {
+	for _, node := range nodes {
 		peers = append(peers, &types.Peer{
 			Name:          node.Name,
 			Level:         node.Level,
@@ -129,7 +138,7 @@ func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequ
 			return response, err
 		}
 
-		if err := n.addAuthenticationEntry(request.Block, n.cfg.Level); err != nil {
+		if err := n.addAuthenticationEntry(ctx, request.Block, n.cfg.Level); err != nil {
 			logger.Errorf("add authentication entry: %s", err)
 			return response, err
 		}
@@ -201,10 +210,10 @@ func (n *Node) RegisterNode(ctx context.Context, request *types.NodeRegistration
 	ctx, logger := n.logger.StartTrace(ctx, "register node")
 	defer logger.FinishTrace()
 
-	if err := n.cipher.VerifyDAR(request.Dar); err != nil {
-		logger.Errorf("verify dar: %s", err)
-		return nil, err
-	}
+	// if err := n.cipher.VerifyDAR(request.Dar); err != nil {
+	// 	logger.Errorf("verify dar: %s", err)
+	// 	return nil, err
+	// }
 
 	client, err := initClient(ctx, request.Node.GrpcAddress)
 	if err != nil {
@@ -212,14 +221,16 @@ func (n *Node) RegisterNode(ctx context.Context, request *types.NodeRegistration
 		return nil, err
 	}
 
-	n.childrenNodes.Add(NewPeer(
+	if err = n.addPeer(ctx, NewPeer(
 		request.Node.Name,
 		request.Node.DeviceId,
 		request.Node.ClusterHeadId,
 		request.Node.GrpcAddress,
 		request.Node.Level,
 		client,
-	))
+	)); err != nil {
+		return nil, err
+	}
 
 	return &types.NodeRegistrationResponse{
 		GenesisHash: n.chain.GetFirstBlock().Hash,
