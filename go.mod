@@ -9,7 +9,9 @@ require (
 	github.com/DirusK/utils/validator v1.0.1
 	github.com/alitto/pond v1.8.3
 	github.com/go-co-op/gocron v1.36.0
+	github.com/jedib0t/go-pretty/v6 v6.4.9
 	github.com/nutsdb/nutsdb v0.14.2
+	github.com/sanity-io/litter v1.5.5
 	github.com/spf13/cobra v1.8.0
 	google.golang.org/grpc v1.59.0
 	google.golang.org/protobuf v1.31.0
@@ -51,7 +53,6 @@ require (
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sagikazarmark/locafero v0.3.0 // indirect
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
-	github.com/sanity-io/litter v1.5.5 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.10.0 // indirect
 	github.com/spf13/cast v1.5.1 // indirect

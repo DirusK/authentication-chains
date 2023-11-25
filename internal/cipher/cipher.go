@@ -102,8 +102,8 @@ func (c cipher) SerializePublicKey() []byte {
 	return pem.EncodeToMemory(&b)
 }
 
-func (c cipher) ToHexPublicKey() string {
-	return fmt.Sprintf("%x", c.SerializePublicKey())
+func (c cipher) ToStringPublicKey() string {
+	return string(c.SerializePublicKey())
 }
 
 // SerializePrivateKey serializes the private key.
@@ -118,8 +118,8 @@ func (c cipher) SerializePrivateKey() []byte {
 	return pem.EncodeToMemory(&b)
 }
 
-func (c cipher) ToHexPrivateKey() string {
-	return fmt.Sprintf("%x", c.SerializePrivateKey())
+func (c cipher) ToStringPrivateKey() string {
+	return string(c.SerializePrivateKey())
 }
 
 // GetPrivateKey returns the private rsa key.

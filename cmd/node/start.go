@@ -2,35 +2,29 @@
  * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
  */
 
-package cmd
+package node
 
 import (
 	"github.com/DirusK/utils/printer"
 	"github.com/spf13/cobra"
 
+	"authentication-chains/cmd/helpers"
 	"authentication-chains/internal/app"
-	"authentication-chains/internal/config"
 )
-
-// cfgPath is a path to configuration file.
-var cfgPath string
-
-const tagNode = "NODE"
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a blockchain node",
 	Run: func(cmd *cobra.Command, args []string) {
-		app.New(ctx, cfgPath).Run()
-		printer.Infot(tagNode, "finished successfully")
+		printer.Infot(helpers.TagCLI, "starting node")
+		app.New(helpers.Ctx, cfgPath).Run()
+		printer.Infot(helpers.TagCLI, "finished successfully")
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(startCmd)
-
-	startCmd.PersistentFlags().StringVarP(&cfgPath, "config", "c", config.DefaultPath, "Path to configuration file")
+	NodeCmd.AddCommand(startCmd)
 
 	// Here you will define your flags and configuration settings.
 

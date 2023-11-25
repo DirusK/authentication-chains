@@ -16,10 +16,10 @@ type Cipher interface {
 	GetPublicKey() *rsa.PublicKey
 	// SerializePublicKey serializes the public key.
 	SerializePublicKey() []byte
-	ToHexPublicKey() string
+	ToStringPublicKey() string
 	// SerializePrivateKey serializes the private key.
 	SerializePrivateKey() []byte
-	ToHexPrivateKey() string
+	ToStringPrivateKey() string
 	// GetPrivateKey returns the private rsa key.
 	GetPrivateKey() *rsa.PrivateKey
 	// Encrypt encrypts the given plain text using the public key.

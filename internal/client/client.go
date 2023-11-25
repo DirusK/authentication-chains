@@ -29,12 +29,12 @@ type Client struct {
 
 func New(ctx context.Context, configPath string) (*Client, error) {
 	var cfg cfg.Client
-	if err := config.LoadFromFileWithFlag(configPath, &cfg); err != nil {
+	if err := config.LoadFromFile(configPath, &cfg); err != nil {
 		printer.Errort(tag, err, "Failed to load config")
 		return nil, err
 	}
 
-	c, err := cipher.FromHexPrivateKey(cfg.Keys.PrivateKey)
+	c, err := cipher.FromStringPrivateKey(cfg.Keys.PrivateKey)
 	if err != nil {
 		printer.Errort(tag, err, "Failed to load private key")
 		return nil, err
@@ -78,8 +78,8 @@ func (c *Client) SendDAR() (string, error) {
 	}
 
 	printer.Infot(tag, "Creating DAR",
-		"device_id", fmt.Sprintf("%x", dar.DeviceId),
-		"cluster_head_id", fmt.Sprintf("%x", dar.ClusterHeadId),
+		"device_id", fmt.Sprintf("\n%s\n", dar.DeviceId),
+		"cluster_head_id", fmt.Sprintf("\n%s\n", dar.ClusterHeadId),
 		"signature", fmt.Sprintf("%x", dar.Signature),
 	)
 

@@ -25,17 +25,20 @@ run:
 	go run main.go
 
 start-alice:
-	go run . start -c configs/nodes/alice.yaml
+	go run . node start -c configs/nodes/alice.yaml
 
 start-bob:
-	go run . start -c configs/nodes/bob.yaml
+	go run . node start -c configs/nodes/bob.yaml
 
 start-tom:
-	go run . start -c configs/nodes/tom.yaml
+	go run . node start -c configs/nodes/tom.yaml
 
 keygen:
-	go run . keygen finn
+	go run . client keygen -n finn
 
-dar:
-	go run . send-dar finn
+send-dar:
+	go run . client send-dar -n finn
+
+get-blocks:
+	go run . client get-blocks 0 100 -n finn
 

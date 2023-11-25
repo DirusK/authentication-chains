@@ -2,25 +2,26 @@
  * Copyright © 2023 Khruslov Dmytro khruslov.work@gmail.com
  */
 
-package cmd
+package client
 
 import (
 	"fmt"
 
 	"github.com/spf13/cobra"
 
+	"authentication-chains/cmd/helpers"
 	"authentication-chains/internal/client"
 )
 
 // sendDar represents the send-dar command
 var sendDar = &cobra.Command{
-	Use:   "send-dar [name]",
+	Use:   "send-dar",
 	Short: "Send device authentication request",
-	Args:  cobra.ExactArgs(1),
+	Args:  cobra.NoArgs,
 	Run: func(cmd *cobra.Command, args []string) {
-		configPath := fmt.Sprintf(defaultConfigPath, args[0])
+		configPath := fmt.Sprintf(defaultConfigPath, cfgName)
 
-		client, err := client.New(ctx, configPath)
+		client, err := client.New(helpers.Ctx, configPath)
 		if err != nil {
 			return
 		}
@@ -37,7 +38,7 @@ var sendDar = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(sendDar)
+	ClientCmd.AddCommand(sendDar)
 
 	// Here you will define your flags and configuration settings.
 

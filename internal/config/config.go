@@ -10,7 +10,7 @@ import (
 	"github.com/DirusK/utils/log"
 )
 
-const DefaultPath = "config/config.yaml"
+const DefaultPath = "configs/default.yaml"
 
 type (
 	// Config is a node configuration.
