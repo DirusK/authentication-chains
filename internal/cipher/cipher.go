@@ -45,20 +45,22 @@ type cipher struct {
 func New(db *nutsdb.DB) (Cipher, error) {
 	var c Cipher
 
-	if err := db.View(func(tx *nutsdb.Tx) error {
-		entry, err := tx.Get(types.BucketCipher, types.KeyCipher)
-		if err != nil {
-			return err
-		}
+	if db != nil {
+		if err := db.View(func(tx *nutsdb.Tx) error {
+			entry, err := tx.Get(types.BucketCipher, types.KeyCipher)
+			if err != nil {
+				return err
+			}
 
-		c, err = Deserialize(entry.Value)
-		if err != nil {
-			return err
-		}
+			c, err = Deserialize(entry.Value)
+			if err != nil {
+				return err
+			}
 
-		return nil
-	}); err == nil {
-		return c, nil
+			return nil
+		}); err == nil {
+			return c, nil
+		}
 	}
 
 	// The GenerateKey method takes in a reader that returns random bits, and the number of bits
@@ -72,10 +74,12 @@ func New(db *nutsdb.DB) (Cipher, error) {
 		PublicKey:  &privateKey.PublicKey,
 	}
 
-	if err = db.Update(func(tx *nutsdb.Tx) error {
-		return tx.Put(types.BucketCipher, types.KeyCipher, c.Serialize(), types.InfinityTTL)
-	}); err != nil {
-		return nil, err
+	if db != nil {
+		if err = db.Update(func(tx *nutsdb.Tx) error {
+			return tx.Put(types.BucketCipher, types.KeyCipher, c.Serialize(), types.InfinityTTL)
+		}); err != nil {
+			return nil, err
+		}
 	}
 
 	return c, nil
@@ -98,6 +102,10 @@ func (c cipher) SerializePublicKey() []byte {
 	return pem.EncodeToMemory(&b)
 }
 
+func (c cipher) ToHexPublicKey() string {
+	return fmt.Sprintf("%x", c.SerializePublicKey())
+}
+
 // SerializePrivateKey serializes the private key.
 func (c cipher) SerializePrivateKey() []byte {
 	privateKeyBytes := x509.MarshalPKCS1PrivateKey(c.PrivateKey)
@@ -108,6 +116,10 @@ func (c cipher) SerializePrivateKey() []byte {
 	}
 
 	return pem.EncodeToMemory(&b)
+}
+
+func (c cipher) ToHexPrivateKey() string {
+	return fmt.Sprintf("%x", c.SerializePrivateKey())
 }
 
 // GetPrivateKey returns the private rsa key.

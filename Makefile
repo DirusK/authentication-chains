@@ -32,3 +32,6 @@ start-bob:
 
 start-tom:
 	go run . start -c configs/nodes/tom.yaml
+
+keygen:
+	go run . keygen finn

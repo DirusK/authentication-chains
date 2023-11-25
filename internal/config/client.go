@@ -12,7 +12,7 @@ type (
 	}
 
 	Keys struct {
-		PublicKey  string `yaml:"private-key" validate:"required"`
+		PublicKey  string `yaml:"public-key" validate:"required"`
 		PrivateKey string `yaml:"private-key" validate:"required"`
 	}
 )

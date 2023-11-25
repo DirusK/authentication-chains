@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"crypto/x509"
 	"encoding/gob"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 
@@ -27,6 +28,23 @@ func Deserialize(data []byte) (Cipher, error) {
 	}
 
 	return c, nil
+}
+
+func FromHexPrivateKey(hexPrivateKey string) (Cipher, error) {
+	privateKeyBytes, err := hex.DecodeString(hexPrivateKey)
+	if err != nil {
+		return nil, err
+	}
+
+	privateKey, err := DeserializePrivateKey(privateKeyBytes)
+	if err != nil {
+		return nil, err
+	}
+
+	return &cipher{
+		PrivateKey: privateKey,
+		PublicKey:  &privateKey.PublicKey,
+	}, nil
 }
 
 // Hash hashes the given data using SHA256
