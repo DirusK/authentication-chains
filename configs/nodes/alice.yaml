@@ -28,6 +28,6 @@ schedulers:
     start-immediately: false
 
   explore:
-    enabled: true
+    enabled: false
     interval: 1h
-    start-immediately: true
+    start-immediately: false

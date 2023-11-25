@@ -120,3 +120,40 @@ func (n *Node) Sync(ctx context.Context) {
 		}
 	}
 }
+
+func (n *Node) Explore(ctx context.Context) {
+	ctx, logger := n.logger.StartTrace(ctx, "explore")
+	defer logger.FinishTrace()
+
+	if n.clusterHead == nil {
+		return
+	}
+
+	peers, err := n.clusterHead.Client.GetPeers(ctx, &types.PeersRequest{Level: n.cfg.Level})
+	if err != nil {
+		logger.Errorf("get peers from cluster head: %s", err)
+		return
+	}
+
+	for _, peer := range peers.Peers {
+		if peer.GrpcAddress == n.cfg.GRPC.Address {
+			continue
+		}
+
+		// if n.clusterNodes != nil && n.clusterNodes.Exists(peer) {
+		// 	continue
+		// }
+
+		client, err := initClient(ctx, peer.GrpcAddress)
+		if err != nil {
+			logger.Errorf("init client for %s: %s", peer.Name, err)
+			continue
+		}
+
+		pr := NewPeer(peer.Name, peer.DeviceId, peer.ClusterHeadId, peer.GrpcAddress, peer.Level, client)
+		if err = n.addPeer(ctx, pr); err != nil {
+			logger.Errorf("add peer for %s: %s", peer.Name, err)
+			continue
+		}
+	}
+}

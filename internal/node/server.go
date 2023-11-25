@@ -30,7 +30,6 @@ func (n *Node) GetStatus(ctx context.Context, _ *types.StatusRequest) (*types.St
 			GrpcAddress:   n.cfg.GRPC.Address,
 		},
 		LastBlockIndex: lastBlock.Index,
-		LastBlockHash:  lastBlock.Hash,
 	}, nil
 }
 
@@ -85,29 +84,21 @@ func (n *Node) GetPeers(ctx context.Context, request *types.PeersRequest) (*type
 	ctx, logger := n.logger.StartTrace(ctx, "get peers")
 	defer logger.FinishTrace()
 
-	if request.Level != n.cfg.Level || request.Level != n.cfg.Level-1 {
+	if request.Level != n.cfg.Level && request.Level != n.cfg.Level-1 {
 		return nil, fmt.Errorf("level %d is not supported", request.Level)
 	}
 
-	var nodes []*Peer
+	var peers []*types.Peer
 
 	switch {
 	case request.Level == n.cfg.Level:
-		nodes = n.clusterNodes.GetAll()
+		if n.clusterNodes != nil {
+			peers = n.clusterNodes.ToProto()
+		}
 	case request.Level == n.cfg.Level-1:
-		nodes = n.childrenNodes.GetAll()
-	}
-
-	peers := make([]*types.Peer, 0, len(n.clusterNodes.GetAll()))
-
-	for _, node := range nodes {
-		peers = append(peers, &types.Peer{
-			Name:          node.Name,
-			Level:         node.Level,
-			DeviceId:      node.DeviceID,
-			ClusterHeadId: node.ClusterHeadID,
-			GrpcAddress:   node.GRPCAddress,
-		})
+		if n.childrenNodes != nil {
+			peers = n.childrenNodes.ToProto()
+		}
 	}
 
 	return &types.PeersResponse{

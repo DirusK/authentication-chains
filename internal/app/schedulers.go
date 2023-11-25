@@ -16,7 +16,20 @@ func serveSchedulers(ctx context.Context, app *App) {
 			app.scheduler.WaitForSchedule()
 		}
 
-		app.scheduler.Do(app.node.Sync)
+		if _, err := app.scheduler.Do(func() { app.node.Sync(ctx) }); err != nil {
+			app.logger.Fatal(err)
+		}
+	}
+
+	if app.cfg.Schedulers.Explore.Enabled {
+		app.scheduler.Every(app.cfg.Schedulers.Explore.Interval)
+		if !app.cfg.Schedulers.Explore.StartImmediately {
+			app.scheduler.WaitForSchedule()
+		}
+
+		if _, err := app.scheduler.Do(func() { app.node.Explore(ctx) }); err != nil {
+			app.logger.Fatal(err)
+		}
 	}
 
 	app.scheduler.StartAsync()

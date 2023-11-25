@@ -93,3 +93,17 @@ func (p *Peers) ToProto() []*types.Peer {
 
 	return peers
 }
+
+// Exists checks if a peer exists in the list.
+func (p *Peers) Exists(peer *Peer) bool {
+	p.mutex.RLock()
+	defer p.mutex.RUnlock()
+
+	for _, p := range p.Peers {
+		if p.GRPCAddress == peer.GRPCAddress {
+			return true
+		}
+	}
+
+	return false
+}

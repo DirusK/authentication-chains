@@ -16,6 +16,5 @@ message StatusRequest {}
 // StatusResponse is the response for getting status of the node.
 message StatusResponse {
     Peer peer = 1;
-    uint64 last_block_index = 4;
-    bytes last_block_hash = 5;
+    uint64 last_block_index = 2;
 }

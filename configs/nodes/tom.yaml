@@ -23,9 +23,9 @@ worker-pool:
 
 schedulers:
   sync:
-    enabled: false
+    enabled: true
     interval: 1m
-    start-immediately: false
+    start-immediately: true
 
   explore:
     enabled: true
