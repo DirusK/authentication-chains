@@ -20,6 +20,7 @@ func serveSchedulers(ctx context.Context, app *App) {
 	}
 
 	app.scheduler.StartAsync()
+
 	<-ctx.Done()
 	app.scheduler.Stop()
 }

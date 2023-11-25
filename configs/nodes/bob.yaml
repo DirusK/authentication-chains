@@ -1,0 +1,33 @@
+node:
+  name: "bob"
+  level: 0
+  genesis-hash: ""
+  cluster-head-grpc-address: "localhost:50050"
+  grpc:
+    address: "localhost:50051"
+    timeout: 1m
+
+storage:
+  directory: "volumes/bob"
+
+logger:
+  mode: "dev"
+  log-level: "debug"
+  log-format: "text"
+  with-caller: true
+  colored: true
+
+worker-pool:
+  max-workers: 10
+  max-capacity: 100
+
+schedulers:
+  sync:
+    enabled: false
+    interval: 1m
+    start-immediately: false
+
+  explore:
+    enabled: true
+    interval: 1h
+    start-immediately: true

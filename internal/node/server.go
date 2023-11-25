@@ -232,9 +232,17 @@ func (n *Node) RegisterNode(ctx context.Context, request *types.NodeRegistration
 		return nil, err
 	}
 
+	peers := n.childrenNodes.ToProto()
+	for i, peer := range peers {
+		if peer.GrpcAddress == request.Node.GrpcAddress {
+			peers = append(peers[:i], peers[i+1:]...)
+			break
+		}
+	}
+
 	return &types.NodeRegistrationResponse{
-		GenesisHash: n.chain.GetFirstBlock().Hash,
-		Peers:       n.childrenNodes.ToProto(),
+		GenesisHash: n.authBlockHash,
+		Peers:       peers,
 	}, nil
 }
 

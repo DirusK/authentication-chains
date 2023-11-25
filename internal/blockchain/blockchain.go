@@ -21,7 +21,6 @@ import (
 // blockchain implements chain logic.
 type blockchain struct {
 	db          *nutsdb.DB
-	firstBlock  *types.Block
 	lastBlock   *types.Block
 	genesisHash []byte
 	mutex       sync.RWMutex
@@ -29,43 +28,28 @@ type blockchain struct {
 
 // New creates a new blockchain instance.
 func New(db *nutsdb.DB) (Blockchain, error) {
-	var (
-		lastBlock  *types.Block
-		firstBlock *types.Block
-	)
+	var lastBlock *types.Block
 
-	if err := db.View(func(tx *nutsdb.Tx) error {
-		iterator := nutsdb.NewIterator(tx, types.BucketBlocks, nutsdb.IteratorOptions{Reverse: true})
-		if !iterator.Next() {
-			return nil
-		}
-
-		data, err := iterator.Value()
+	db.View(func(tx *nutsdb.Tx) error {
+		lastBlockIndex, err := tx.Get(types.BucketIndexes, types.KeyLastBlock)
 		if err != nil {
-			return nil // no blocks in the chain
+			return err
 		}
 
-		lastBlock = types.DeserializeBlock(data)
-
-		if found := iterator.Seek(uint64ToBytes(0)); found {
-			data, err = iterator.Value()
-			if err != nil {
-				return err
-			}
-
-			firstBlock = types.DeserializeBlock(data)
+		block, err := tx.Get(types.BucketBlocks, lastBlockIndex.Value)
+		if err != nil {
+			return err
 		}
+
+		lastBlock = types.DeserializeBlock(block.Value)
 
 		return nil
-	}); err != nil {
-		return nil, err
-	}
+	})
 
 	return &blockchain{
-		lastBlock:  lastBlock,
-		firstBlock: firstBlock,
-		mutex:      sync.RWMutex{},
-		db:         db,
+		lastBlock: lastBlock,
+		mutex:     sync.RWMutex{},
+		db:        db,
 	}, nil
 }
 
@@ -89,9 +73,9 @@ func (b *blockchain) CreateBlock(dar *types.DeviceAuthenticationRequest) (*types
 
 	var block *types.Block
 	if b.lastBlock != nil {
-		block = types.NewBlock(b.lastBlock.Hash, b.lastBlock.Index, dar)
+		block = types.NewBlock(b.lastBlock.Hash, b.lastBlock.Index+1, dar)
 	} else {
-		block = types.NewBlock(b.genesisHash, 0, dar)
+		block = types.NewBlock(b.genesisHash, 1, dar)
 	}
 
 	data, err := proto.Marshal(block)
@@ -125,7 +109,11 @@ func (b *blockchain) AddBlock(block *types.Block) error {
 			}
 		}
 
-		if err := tx.Put(types.BucketBlocks, block.Hash, block.Serialize(), types.InfinityTTL); err != nil {
+		if err := tx.Put(types.BucketBlocks, uint64ToBytes(block.Index), block.Serialize(), types.InfinityTTL); err != nil {
+			return err
+		}
+
+		if err := tx.Put(types.BucketIndexes, types.KeyLastBlock, uint64ToBytes(block.Index), types.InfinityTTL); err != nil {
 			return err
 		}
 
@@ -203,26 +191,6 @@ func (b *blockchain) GetLastBlock() *types.Block {
 	return lastBlock
 }
 
-// GetFirstBlock returns the first block of the chain.
-func (b *blockchain) GetFirstBlock() *types.Block {
-	b.mutex.RLock()
-	defer b.mutex.RUnlock()
-
-	if b.firstBlock == nil {
-		return &types.Block{}
-	}
-
-	firstBlock := &types.Block{
-		Hash:      b.firstBlock.Hash,
-		PrevHash:  b.firstBlock.PrevHash,
-		Index:     b.firstBlock.Index,
-		Dar:       b.firstBlock.Dar,
-		Timestamp: b.firstBlock.Timestamp,
-	}
-
-	return firstBlock
-}
-
 // DeleteLastBlock deletes the last block from the chain.
 func (b *blockchain) DeleteLastBlock() error {
 	b.mutex.Lock()
@@ -243,7 +211,13 @@ func (b *blockchain) DeleteLastBlock() error {
 				return err
 			}
 
-			b.lastBlock = types.DeserializeBlock(entry.Value)
+			lastBlock := types.DeserializeBlock(entry.Value)
+
+			if err := tx.Put(types.BucketIndexes, types.KeyLastBlock, uint64ToBytes(lastBlock.Index), types.InfinityTTL); err != nil {
+				return err
+			}
+
+			b.lastBlock = lastBlock
 		}
 
 		return nil

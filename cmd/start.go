@@ -5,6 +5,7 @@
 package cmd
 
 import (
+	"github.com/DirusK/utils/printer"
 	"github.com/spf13/cobra"
 
 	"authentication-chains/internal/app"
@@ -14,12 +15,15 @@ import (
 // cfgPath is a path to configuration file.
 var cfgPath string
 
+const tag = "NODE"
+
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a blockchain node",
 	Run: func(cmd *cobra.Command, args []string) {
-		app.New(ctx, cfgPath).Run()
+		app.New(registerGracefulHandle(), cfgPath).Run()
+		printer.Infot(tag, "finished successfully")
 	},
 }
 

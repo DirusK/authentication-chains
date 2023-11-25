@@ -1,14 +1,14 @@
 node:
-  name: "alice"
-  level: 1
-  genesis-hash: "0x0000000"
-  cluster-head-grpc-address:
+  name: "tom"
+  level: 0
+  genesis-hash: ""
+  cluster-head-grpc-address: "localhost:50050"
   grpc:
-    address: "localhost:50050"
+    address: "localhost:50052"
     timeout: 1m
 
 storage:
-  directory: "volumes/alice"
+  directory: "volumes/tom"
 
 logger:
   mode: "dev"
@@ -23,7 +23,7 @@ worker-pool:
 
 schedulers:
   sync:
-    enabled: true
+    enabled: false
     interval: 1m
     start-immediately: false
 

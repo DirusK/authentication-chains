@@ -22,8 +22,6 @@ type (
 		GetAllBlocks(from, to uint64) ([]*types.Block, error)
 		// GetLastBlock returns the last block of the chain.
 		GetLastBlock() *types.Block
-		// GetFirstBlock returns the first block of the chain.
-		GetFirstBlock() *types.Block
 		// DeleteLastBlock deletes the last block from the chain.
 		DeleteLastBlock() error
 		// DeleteBlocks delete blocks from the chain.

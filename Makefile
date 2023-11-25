@@ -25,4 +25,10 @@ run:
 	go run main.go
 
 start-alice:
-	go run . start -c config/alice.yaml
+	go run . start -c configs/nodes/alice.yaml
+
+start-bob:
+	go run . start -c configs/nodes/bob.yaml
+
+start-tom:
+	go run . start -c configs/nodes/tom.yaml

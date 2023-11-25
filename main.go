@@ -4,8 +4,13 @@
 
 package main
 
-import "authentication-chains/cmd"
+import (
+	"github.com/DirusK/utils/printer"
+
+	"authentication-chains/cmd"
+)
 
 func main() {
+	printer.Colored = true
 	cmd.Execute()
 }

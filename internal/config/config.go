@@ -25,7 +25,7 @@ type (
 	// Node is a node cluster configuration.
 	Node struct {
 		Name                   string `yaml:"name" validate:"required"`
-		Level                  uint32 `yaml:"level" validate:"required"`
+		Level                  uint32 `yaml:"level"`
 		GenesisHash            string `yaml:"genesis-hash"`
 		ClusterHeadGRPCAddress string `yaml:"cluster-head-grpc-address"`
 		GRPC                   GRPC   `yaml:"grpc" validate:"required"`

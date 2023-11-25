@@ -52,7 +52,7 @@ func New(ctx context.Context, cfg config.Node, db *nutsdb.DB, workerPool *pond.W
 		return nil, err
 	}
 
-	clusterHead, _ := initPeer(ctx, db, types.BucketClusterHead)
+	clusterHead, _ := initPeer(ctx, db, types.BucketClusterHead, types.KeyClusterHead)
 	clusterNodes, _ := initPeers(ctx, db, types.BucketClusterNodes)
 	childrenNodes, _ := initPeers(ctx, db, types.BucketChildrenNodes)
 
@@ -75,18 +75,32 @@ func (n *Node) Init(ctx context.Context) error {
 	ctx, logger := n.logger.StartTrace(ctx, "init")
 	defer logger.FinishTrace()
 
+	var err error
+
 	switch n.cfg.ClusterHeadGRPCAddress == "" {
 	case true:
-		return n.initMaster(ctx)
+		err = n.initMaster(ctx)
 	default:
-		return n.initPeers(ctx)
+		err = n.initPeers(ctx)
 	}
+
+	if err != nil {
+		return err
+	}
+
+	logger.Infof("node initialized")
+
+	return nil
 }
 
 // Sync syncs blocks from the cluster.
 func (n *Node) Sync(ctx context.Context) {
 	ctx, logger := n.logger.StartTrace(ctx, "sync")
 	defer logger.FinishTrace()
+
+	if n.clusterNodes == nil {
+		return
+	}
 
 	lastBlock := n.chain.GetLastBlock()
 

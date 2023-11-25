@@ -75,7 +75,7 @@ func (n *Node) getAuthenticationEntry(ctx context.Context, deviceID []byte) (*ty
 	ctx, logger := n.logger.StartTrace(ctx, "get authentication entry")
 	defer logger.FinishTrace()
 
-	var auth *types.AuthenticationEntry
+	var auth types.AuthenticationEntry
 
 	if err := n.db.View(func(tx *nutsdb.Tx) error {
 		data, err := tx.Get(bucketAuthTableLevel(n.cfg.Level), deviceID)
@@ -83,7 +83,7 @@ func (n *Node) getAuthenticationEntry(ctx context.Context, deviceID []byte) (*ty
 			return err
 		}
 
-		if err = proto.Unmarshal(data.Value, auth); err != nil {
+		if err = proto.Unmarshal(data.Value, &auth); err != nil {
 			return err
 		}
 
@@ -92,7 +92,7 @@ func (n *Node) getAuthenticationEntry(ctx context.Context, deviceID []byte) (*ty
 		return nil, err
 	}
 
-	return auth, nil
+	return &auth, nil
 }
 
 // addAuthenticationEntry registers a device in authentication table.
@@ -275,7 +275,7 @@ func (n *Node) initPeers(ctx context.Context) error {
 	ctx, logger := n.logger.StartTrace(ctx, "init peers")
 	defer logger.FinishTrace()
 
-	if n.clusterHead != nil {
+	if n.clusterHead == nil {
 		client, err := initClient(ctx, n.cfg.ClusterHeadGRPCAddress)
 		if err != nil {
 			logger.Errorf("init cluster head client: %s", err)
@@ -288,14 +288,16 @@ func (n *Node) initPeers(ctx context.Context) error {
 			return err
 		}
 
-		if err = n.addPeer(ctx, NewPeer(
+		n.clusterHead = NewPeer(
 			status.Peer.Name,
 			status.Peer.DeviceId,
 			status.Peer.ClusterHeadId,
 			status.Peer.GrpcAddress,
 			status.Peer.Level,
 			client,
-		)); err != nil {
+		)
+
+		if err = n.addPeer(ctx, n.clusterHead); err != nil {
 			return err
 		}
 	}
@@ -338,7 +340,7 @@ func (n *Node) registerNode(ctx context.Context) error {
 			Name:          n.cfg.Name,
 			Level:         n.cfg.Level,
 			DeviceId:      n.deviceID,
-			ClusterHeadId: n.clusterHead.ClusterHeadID,
+			ClusterHeadId: n.clusterHead.DeviceID,
 			GrpcAddress:   n.cfg.GRPC.Address,
 		},
 	})
@@ -349,7 +351,11 @@ func (n *Node) registerNode(ctx context.Context) error {
 
 	n.chain.SetGenesisHash(registerResponse.GenesisHash)
 
-	for _, peer := range registerResponse.GetPeers() {
+	for _, peer := range registerResponse.Peers {
+		if bytes.Equal(peer.DeviceId, n.deviceID) {
+			continue
+		}
+
 		client, err := initClient(ctx, peer.GrpcAddress)
 		if err != nil {
 			logger.Errorf("init peer client: %s", err)
@@ -435,8 +441,10 @@ func (n *Node) validateBlock(ctx context.Context, block *types.Block) error {
 	ctx, logger := n.logger.StartTrace(ctx, "validate block")
 	defer logger.FinishTrace()
 
-	if !bytes.Equal(block.Dar.ClusterHeadId, n.deviceID) ||
-		bytes.Equal(block.Dar.ClusterHeadId, n.getClusterHeadDeviceID()) {
+	switch {
+	case bytes.Equal(block.Dar.ClusterHeadId, n.deviceID):
+	case bytes.Equal(block.Dar.ClusterHeadId, n.getClusterHeadDeviceID()):
+	default:
 		return fmt.Errorf("%w: invalid cluster head", ErrBlockValidation)
 	}
 
@@ -474,7 +482,26 @@ func (n *Node) addPeer(ctx context.Context, peer *Peer) error {
 			return err
 		}
 
-		n.childrenNodes.Add(peer)
+		if n.childrenNodes == nil {
+			n.childrenNodes = NewPeers(peer)
+		} else {
+			n.childrenNodes.Add(peer)
+		}
+
+	case bytes.Equal(peer.DeviceID, n.getClusterHeadDeviceID()):
+		if err := n.db.Update(func(tx *nutsdb.Tx) error {
+			data, err := proto.Marshal(peer.ToProto())
+			if err != nil {
+				return err
+			}
+
+			return tx.Put(types.BucketClusterHead, types.KeyClusterHead, data, types.InfinityTTL)
+		}); err != nil {
+			logger.Errorf("add cluster head %s: %s", peer.Name, err)
+			return err
+		}
+
+		n.clusterHead = peer
 
 	case bytes.Equal(peer.ClusterHeadID, n.getClusterHeadDeviceID()):
 		if err := n.db.Update(func(tx *nutsdb.Tx) error {
@@ -489,22 +516,11 @@ func (n *Node) addPeer(ctx context.Context, peer *Peer) error {
 			return err
 		}
 
-		n.clusterNodes.Add(peer)
-
-	case bytes.Equal(peer.DeviceID, n.getClusterHeadDeviceID()):
-		if err := n.db.Update(func(tx *nutsdb.Tx) error {
-			data, err := proto.Marshal(peer.ToProto())
-			if err != nil {
-				return err
-			}
-
-			return tx.Put(types.BucketClusterHead, peer.DeviceID, data, types.InfinityTTL)
-		}); err != nil {
-			logger.Errorf("add cluster head %s: %s", peer.Name, err)
-			return err
+		if n.clusterNodes == nil {
+			n.clusterNodes = NewPeers(peer)
+		} else {
+			n.clusterNodes.Add(peer)
 		}
-
-		n.clusterHead = peer
 
 	default:
 		logger.Errorf("invalid peer %s", peer.Name)
@@ -515,11 +531,11 @@ func (n *Node) addPeer(ctx context.Context, peer *Peer) error {
 }
 
 // initPeer initializes a peer from the database.
-func initPeer(ctx context.Context, db *nutsdb.DB, bucket string) (*Peer, error) {
+func initPeer(ctx context.Context, db *nutsdb.DB, bucket string, key []byte) (*Peer, error) {
 	var peer types.Peer
 
 	if err := db.View(func(tx *nutsdb.Tx) error {
-		data, err := tx.Get(bucket, types.KeyClusterHead)
+		data, err := tx.Get(bucket, key)
 		if err != nil {
 			return err
 		}

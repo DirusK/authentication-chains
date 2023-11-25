@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/DirusK/utils/config v1.0.4
 	github.com/DirusK/utils/log v1.0.6
+	github.com/DirusK/utils/printer v1.0.2
 	github.com/DirusK/utils/validator v1.0.1
 	github.com/alitto/pond v1.8.3
 	github.com/go-co-op/gocron v1.36.0
@@ -16,7 +17,6 @@ require (
 
 require (
 	github.com/DirusK/utils/errs v1.0.2 // indirect
-	github.com/DirusK/utils/printer v1.0.2 // indirect
 	github.com/DirusK/utils/tracing/sentry v1.0.2 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/antlabs/stl v0.0.1 // indirect
