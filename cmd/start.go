@@ -15,15 +15,15 @@ import (
 // cfgPath is a path to configuration file.
 var cfgPath string
 
-const tag = "NODE"
+const tagNode = "NODE"
 
 // startCmd represents the start command
 var startCmd = &cobra.Command{
 	Use:   "start",
 	Short: "Start a blockchain node",
 	Run: func(cmd *cobra.Command, args []string) {
-		app.New(registerGracefulHandle(), cfgPath).Run()
-		printer.Infot(tag, "finished successfully")
+		app.New(ctx, cfgPath).Run()
+		printer.Infot(tagNode, "finished successfully")
 	},
 }
 

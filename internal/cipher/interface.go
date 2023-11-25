@@ -36,8 +36,6 @@ type Cipher interface {
 	Serialize() []byte
 	// SignDAR signs the given DeviceAuthenticationRequest.
 	SignDAR(dar *types.DeviceAuthenticationRequest) error
-	// VerifyDAR verifies the given DeviceAuthenticationRequest.
-	VerifyDAR(dar *types.DeviceAuthenticationRequest) error
 	// HashBlock without a hash field.
 	HashBlock(block *types.Block) ([]byte, error)
 	// EncryptContent encrypts the given Content.

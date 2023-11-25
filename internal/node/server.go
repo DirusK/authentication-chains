@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 
+	"authentication-chains/internal/cipher"
 	"authentication-chains/internal/types"
 )
 
@@ -155,7 +156,11 @@ func (n *Node) SendDAR(ctx context.Context, request *types.DeviceAuthenticationR
 	ctx, logger := n.logger.StartTrace(ctx, "broadcast dar")
 	defer logger.FinishTrace()
 
-	if err := n.cipher.VerifyDAR(request); err != nil {
+	if _, err := n.getAuthenticationEntry(ctx, request.DeviceId); err == nil {
+		return nil, errors.New("device is already registered in authentication table")
+	}
+
+	if err := cipher.VerifyDAR(request); err != nil {
 		return nil, err
 	}
 

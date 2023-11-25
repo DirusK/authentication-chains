@@ -35,3 +35,7 @@ start-tom:
 
 keygen:
 	go run . keygen finn
+
+dar:
+	go run . send-dar finn
+
