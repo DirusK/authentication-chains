@@ -118,9 +118,10 @@ func (n *Node) GetPeers(ctx context.Context, request *types.PeersRequest) (*type
 
 func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequest) (*types.BlockValidationResponse, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "send block")
+	logger = logger.WithFields("block_hash", fmt.Sprintf("%x", request.Block.Hash))
 	defer logger.FinishTrace()
 
-	logger.Debugw("received send block request", "block_hash", fmt.Sprintf("%x", request.Block.Hash))
+	logger.Debugw("received send block request")
 
 	response := &types.BlockValidationResponse{}
 
@@ -133,6 +134,7 @@ func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequ
 		if err := n.validateBlock(ctx, request.Block); err != nil {
 			if errors.Is(err, ErrBlockValidation) {
 				response.IsValid = false
+				logger.Debugw("block is invalid")
 				return response, nil
 			}
 
@@ -150,6 +152,7 @@ func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequ
 		if err := n.addBlock(ctx, request.Block); err != nil {
 			if errors.Is(err, ErrBlockValidation) {
 				response.IsValid = false
+				logger.Debugw("block is invalid")
 				return response, nil
 			}
 
@@ -158,6 +161,8 @@ func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequ
 	}
 
 	response.IsValid = true
+
+	logger.Debug("block is valid")
 
 	return response, nil
 }
@@ -186,9 +191,10 @@ func (n *Node) SendDAR(ctx context.Context, request *types.DeviceAuthenticationR
 
 func (n *Node) SendMessage(ctx context.Context, message *types.Message) (*types.Message, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "send message")
+	logger = logger.WithFields("sender_id", string(message.SenderId))
 	defer logger.FinishTrace()
 
-	logger.Debugw("received send message request", "sender_id", string(message.SenderId))
+	logger.Debug("received send message request")
 
 	if !bytes.Equal(message.ReceiverId, n.deviceID) {
 		return nil, ErrInvalidMessageReceiver
@@ -218,6 +224,8 @@ func (n *Node) SendMessage(ctx context.Context, message *types.Message) (*types.
 		return nil, err
 	}
 
+	logger.Debugw("response message is sent", "message", string(respContent.Data))
+
 	return types.NewMessage(n.deviceID, message.SenderId, data), nil
 }
 
@@ -226,11 +234,6 @@ func (n *Node) RegisterNode(ctx context.Context, request *types.NodeRegistration
 	defer logger.FinishTrace()
 
 	logger.Debugw("received register node request", "node", request.Node.Name)
-
-	// if err := n.cipher.VerifyDAR(request.Dar); err != nil {
-	// 	logger.Errorf("verify dar: %s", err)
-	// 	return nil, err
-	// }
 
 	client, err := initClient(ctx, request.Node.GrpcAddress)
 	if err != nil {
@@ -265,13 +268,16 @@ func (n *Node) RegisterNode(ctx context.Context, request *types.NodeRegistration
 
 func (n *Node) VerifyDevice(ctx context.Context, request *types.VerifyDeviceRequest) (*types.VerifyDeviceResponse, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "verify device")
+	logger = logger.WithFields("device_id", string(request.DeviceId))
 	defer logger.FinishTrace()
 
-	logger.Debugw("received verify device request", "device_id", string(request.DeviceId))
+	logger.Debugw("received verify device request")
 
 	if err := n.verifyAuthentication(ctx, request.DeviceId, request.BlockHash); err != nil {
 		return &types.VerifyDeviceResponse{IsVerified: false}, err
 	}
+
+	logger.Debugw("device is verified")
 
 	return &types.VerifyDeviceResponse{IsVerified: true}, nil
 }

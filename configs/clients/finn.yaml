@@ -1,5 +1,5 @@
 name: finn
-block-hash: fc7cd2343e6d7c8c9cbae56063c95eb383389b0e2c6bc21e0ef20f24e45f7121
+block-hash: 7c03f7b8d42dbbe6ee15a87445f3811291ba41cd43b9f7943ebd824f084491db
 grpc:
     address: localhost:50050
     timeout: 15s
