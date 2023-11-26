@@ -20,6 +20,8 @@ func (n *Node) GetStatus(ctx context.Context, _ *types.StatusRequest) (*types.St
 	ctx, logger := n.logger.StartTrace(ctx, "get status")
 	defer logger.FinishTrace()
 
+	logger.Debugw("received status request")
+
 	lastBlock := n.chain.GetLastBlock()
 
 	return &types.StatusResponse{
@@ -37,6 +39,8 @@ func (n *Node) GetStatus(ctx context.Context, _ *types.StatusRequest) (*types.St
 func (n *Node) GetBlock(ctx context.Context, request *types.BlockRequest) (*types.BlockResponse, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "get block")
 	defer logger.FinishTrace()
+
+	logger.Debugw("received get block request", "index", request.Index)
 
 	block, err := n.chain.GetBlock(request.Index)
 	if err != nil {
@@ -71,6 +75,8 @@ func (n *Node) GetBlocks(ctx context.Context, request *types.BlocksRequest) (*ty
 	ctx, logger := n.logger.StartTrace(ctx, "get blocks")
 	defer logger.FinishTrace()
 
+	logger.Debugw("received get blocks request", "from", request.From, "to", request.To)
+
 	blocks, err := n.chain.GetAllBlocks(request.From, request.To)
 	if err != nil {
 		return nil, err
@@ -84,6 +90,8 @@ func (n *Node) GetBlocks(ctx context.Context, request *types.BlocksRequest) (*ty
 func (n *Node) GetPeers(ctx context.Context, request *types.PeersRequest) (*types.PeersResponse, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "get peers")
 	defer logger.FinishTrace()
+
+	logger.Debugw("received get peers request", "level", request.Level)
 
 	if request.Level != n.cfg.Level && request.Level != n.cfg.Level-1 {
 		return nil, fmt.Errorf("level %d is not supported", request.Level)
@@ -112,6 +120,8 @@ func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequ
 	ctx, logger := n.logger.StartTrace(ctx, "send block")
 	defer logger.FinishTrace()
 
+	logger.Debugw("received send block request", "block_hash", fmt.Sprintf("%x", request.Block.Hash))
+
 	response := &types.BlockValidationResponse{}
 
 	switch {
@@ -130,7 +140,7 @@ func (n *Node) SendBlock(ctx context.Context, request *types.BlockValidationRequ
 			return response, err
 		}
 
-		if err := n.addAuthenticationEntry(ctx, request.Block, n.cfg.Level); err != nil {
+		if err := n.addAuthenticationEntry(ctx, request.Block, n.cfg.Level-1); err != nil {
 			logger.Errorf("add authentication entry: %s", err)
 			return response, err
 		}
@@ -156,6 +166,8 @@ func (n *Node) SendDAR(ctx context.Context, request *types.DeviceAuthenticationR
 	ctx, logger := n.logger.StartTrace(ctx, "broadcast dar")
 	defer logger.FinishTrace()
 
+	logger.Debugw("received send dar request", "device_id", string(request.DeviceId))
+
 	if _, err := n.getAuthenticationEntry(ctx, request.DeviceId); err == nil {
 		return nil, errors.New("device is already registered in authentication table")
 	}
@@ -176,6 +188,8 @@ func (n *Node) SendMessage(ctx context.Context, message *types.Message) (*types.
 	ctx, logger := n.logger.StartTrace(ctx, "send message")
 	defer logger.FinishTrace()
 
+	logger.Debugw("received send message request", "sender_id", string(message.SenderId))
+
 	if !bytes.Equal(message.ReceiverId, n.deviceID) {
 		return nil, ErrInvalidMessageReceiver
 	}
@@ -194,7 +208,12 @@ func (n *Node) SendMessage(ctx context.Context, message *types.Message) (*types.
 		Data:      []byte("You are authenticated and message is received: " + string(reqContent.Data)),
 	}
 
-	data, err := n.cipher.EncryptContent(respContent)
+	pubKey, err := cipher.DeserializePublicKey(message.SenderId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := cipher.EncryptContent(pubKey, respContent)
 	if err != nil {
 		return nil, err
 	}
@@ -205,6 +224,8 @@ func (n *Node) SendMessage(ctx context.Context, message *types.Message) (*types.
 func (n *Node) RegisterNode(ctx context.Context, request *types.NodeRegistrationRequest) (*types.NodeRegistrationResponse, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "register node")
 	defer logger.FinishTrace()
+
+	logger.Debugw("received register node request", "node", request.Node.Name)
 
 	// if err := n.cipher.VerifyDAR(request.Dar); err != nil {
 	// 	logger.Errorf("verify dar: %s", err)
@@ -246,9 +267,28 @@ func (n *Node) VerifyDevice(ctx context.Context, request *types.VerifyDeviceRequ
 	ctx, logger := n.logger.StartTrace(ctx, "verify device")
 	defer logger.FinishTrace()
 
+	logger.Debugw("received verify device request", "device_id", string(request.DeviceId))
+
 	if err := n.verifyAuthentication(ctx, request.DeviceId, request.BlockHash); err != nil {
 		return &types.VerifyDeviceResponse{IsVerified: false}, err
 	}
 
 	return &types.VerifyDeviceResponse{IsVerified: true}, nil
+}
+
+func (n *Node) GetAuthenticationTable(
+	ctx context.Context,
+	_ *types.AuthenticationTableRequest,
+) (*types.AuthenticationTableResponse, error) {
+	ctx, logger := n.logger.StartTrace(ctx, "get authentication table")
+	defer logger.FinishTrace()
+
+	logger.Debugw("received get authentication table request")
+
+	table, err := n.getAuthenticationTable(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return &types.AuthenticationTableResponse{Table: table}, nil
 }

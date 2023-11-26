@@ -22,15 +22,16 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Node_GetStatus_FullMethodName    = "/blockchain.Node/GetStatus"
-	Node_GetBlock_FullMethodName     = "/blockchain.Node/GetBlock"
-	Node_GetBlocks_FullMethodName    = "/blockchain.Node/GetBlocks"
-	Node_GetPeers_FullMethodName     = "/blockchain.Node/GetPeers"
-	Node_SendMessage_FullMethodName  = "/blockchain.Node/SendMessage"
-	Node_SendDAR_FullMethodName      = "/blockchain.Node/SendDAR"
-	Node_SendBlock_FullMethodName    = "/blockchain.Node/SendBlock"
-	Node_VerifyDevice_FullMethodName = "/blockchain.Node/VerifyDevice"
-	Node_RegisterNode_FullMethodName = "/blockchain.Node/RegisterNode"
+	Node_GetStatus_FullMethodName              = "/blockchain.Node/GetStatus"
+	Node_GetBlock_FullMethodName               = "/blockchain.Node/GetBlock"
+	Node_GetBlocks_FullMethodName              = "/blockchain.Node/GetBlocks"
+	Node_GetPeers_FullMethodName               = "/blockchain.Node/GetPeers"
+	Node_GetAuthenticationTable_FullMethodName = "/blockchain.Node/GetAuthenticationTable"
+	Node_SendMessage_FullMethodName            = "/blockchain.Node/SendMessage"
+	Node_SendDAR_FullMethodName                = "/blockchain.Node/SendDAR"
+	Node_SendBlock_FullMethodName              = "/blockchain.Node/SendBlock"
+	Node_VerifyDevice_FullMethodName           = "/blockchain.Node/VerifyDevice"
+	Node_RegisterNode_FullMethodName           = "/blockchain.Node/RegisterNode"
 )
 
 // NodeClient is the client API for Node service.
@@ -41,6 +42,7 @@ type NodeClient interface {
 	GetBlock(ctx context.Context, in *BlockRequest, opts ...grpc.CallOption) (*BlockResponse, error)
 	GetBlocks(ctx context.Context, in *BlocksRequest, opts ...grpc.CallOption) (*BlocksResponse, error)
 	GetPeers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersResponse, error)
+	GetAuthenticationTable(ctx context.Context, in *AuthenticationTableRequest, opts ...grpc.CallOption) (*AuthenticationTableResponse, error)
 	SendMessage(ctx context.Context, in *Message, opts ...grpc.CallOption) (*Message, error)
 	SendDAR(ctx context.Context, in *DeviceAuthenticationRequest, opts ...grpc.CallOption) (*DeviceAuthenticationResponse, error)
 	SendBlock(ctx context.Context, in *BlockValidationRequest, opts ...grpc.CallOption) (*BlockValidationResponse, error)
@@ -86,6 +88,15 @@ func (c *nodeClient) GetBlocks(ctx context.Context, in *BlocksRequest, opts ...g
 func (c *nodeClient) GetPeers(ctx context.Context, in *PeersRequest, opts ...grpc.CallOption) (*PeersResponse, error) {
 	out := new(PeersResponse)
 	err := c.cc.Invoke(ctx, Node_GetPeers_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *nodeClient) GetAuthenticationTable(ctx context.Context, in *AuthenticationTableRequest, opts ...grpc.CallOption) (*AuthenticationTableResponse, error) {
+	out := new(AuthenticationTableResponse)
+	err := c.cc.Invoke(ctx, Node_GetAuthenticationTable_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -145,6 +156,7 @@ type NodeServer interface {
 	GetBlock(context.Context, *BlockRequest) (*BlockResponse, error)
 	GetBlocks(context.Context, *BlocksRequest) (*BlocksResponse, error)
 	GetPeers(context.Context, *PeersRequest) (*PeersResponse, error)
+	GetAuthenticationTable(context.Context, *AuthenticationTableRequest) (*AuthenticationTableResponse, error)
 	SendMessage(context.Context, *Message) (*Message, error)
 	SendDAR(context.Context, *DeviceAuthenticationRequest) (*DeviceAuthenticationResponse, error)
 	SendBlock(context.Context, *BlockValidationRequest) (*BlockValidationResponse, error)
@@ -168,6 +180,9 @@ func (UnimplementedNodeServer) GetBlocks(context.Context, *BlocksRequest) (*Bloc
 }
 func (UnimplementedNodeServer) GetPeers(context.Context, *PeersRequest) (*PeersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPeers not implemented")
+}
+func (UnimplementedNodeServer) GetAuthenticationTable(context.Context, *AuthenticationTableRequest) (*AuthenticationTableResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAuthenticationTable not implemented")
 }
 func (UnimplementedNodeServer) SendMessage(context.Context, *Message) (*Message, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SendMessage not implemented")
@@ -265,6 +280,24 @@ func _Node_GetPeers_Handler(srv interface{}, ctx context.Context, dec func(inter
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(NodeServer).GetPeers(ctx, req.(*PeersRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Node_GetAuthenticationTable_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthenticationTableRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(NodeServer).GetAuthenticationTable(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Node_GetAuthenticationTable_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(NodeServer).GetAuthenticationTable(ctx, req.(*AuthenticationTableRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -381,6 +414,10 @@ var Node_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPeers",
 			Handler:    _Node_GetPeers_Handler,
+		},
+		{
+			MethodName: "GetAuthenticationTable",
+			Handler:    _Node_GetAuthenticationTable_Handler,
 		},
 		{
 			MethodName: "SendMessage",

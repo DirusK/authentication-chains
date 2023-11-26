@@ -71,6 +71,43 @@ func (n *Node) mineBlock(ctx context.Context, dar *types.DeviceAuthenticationReq
 	return block, nil
 }
 
+func (n *Node) getAuthenticationTable(ctx context.Context) (map[uint32]*types.AuthenticationEntries, error) {
+	ctx, logger := n.logger.StartTrace(ctx, "get authentication table")
+	defer logger.FinishTrace()
+
+	table := make(map[uint32]*types.AuthenticationEntries)
+
+	if err := n.db.View(func(tx *nutsdb.Tx) error {
+		for i := int32(n.cfg.Level); i >= 0; i-- {
+			level := uint32(i)
+
+			entries := make([]*types.AuthenticationEntry, 0)
+
+			entriesData, err := tx.GetAll(bucketAuthTableLevel(level))
+			if err != nil {
+				continue
+			}
+
+			for _, entryData := range entriesData {
+				var entry types.AuthenticationEntry
+				if err = proto.Unmarshal(entryData.Value, &entry); err != nil {
+					return err
+				}
+
+				entries = append(entries, &entry)
+			}
+
+			table[level] = &types.AuthenticationEntries{Entries: entries}
+		}
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return table, nil
+}
+
 func (n *Node) getAuthenticationEntry(ctx context.Context, deviceID []byte) (*types.AuthenticationEntry, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "get authentication entry")
 	defer logger.FinishTrace()

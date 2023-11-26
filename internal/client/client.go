@@ -5,7 +5,10 @@
 package client
 
 import (
+	"bytes"
 	"context"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 
@@ -15,6 +18,7 @@ import (
 
 	"authentication-chains/internal/cipher"
 	cfg "authentication-chains/internal/config"
+	"authentication-chains/internal/node"
 	"authentication-chains/internal/types"
 )
 
@@ -25,6 +29,7 @@ type Client struct {
 	ctx    context.Context
 	cipher cipher.Cipher
 	client types.NodeClient
+	peer   *node.Peer
 }
 
 func New(ctx context.Context, configPath string) (*Client, error) {
@@ -46,11 +51,18 @@ func New(ctx context.Context, configPath string) (*Client, error) {
 		return nil, err
 	}
 
+	status, err := client.GetStatus(ctx, &types.StatusRequest{})
+	if err != nil {
+		printer.Errort(tag, err, "Failed to get status from node", "address", cfg.GRPC.Address)
+		return nil, err
+	}
+
 	return &Client{
 		ctx:    ctx,
 		config: cfg,
 		cipher: c,
 		client: client,
+		peer:   node.NewPeer(status.Peer.Name, status.Peer.DeviceId, status.Peer.ClusterHeadId, status.Peer.GrpcAddress, status.Peer.Level, client),
 	}, nil
 }
 
@@ -58,21 +70,13 @@ func (c *Client) SendDAR() (string, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, c.config.GRPC.Timeout)
 	defer cancel()
 
-	printer.Infot(tag, "Getting status", "address", c.config.GRPC.Address)
-
-	status, err := c.client.GetStatus(ctx, &types.StatusRequest{})
-	if err != nil {
-		printer.Errort(tag, err, "Failed to get status from node", "address", c.config.GRPC.Address)
-		return "", err
-	}
-
 	dar := &types.DeviceAuthenticationRequest{
 		DeviceId:      c.cipher.SerializePublicKey(),
-		ClusterHeadId: status.Peer.ClusterHeadId,
+		ClusterHeadId: c.peer.ClusterHeadID,
 		Signature:     nil,
 	}
 
-	if err = c.cipher.SignDAR(dar); err != nil {
+	if err := c.cipher.SignDAR(dar); err != nil {
 		printer.Errort(tag, err, "Failed to sign DAR")
 		return "", err
 	}
@@ -83,7 +87,7 @@ func (c *Client) SendDAR() (string, error) {
 		"signature", fmt.Sprintf("%x", dar.Signature),
 	)
 
-	printer.Infot(tag, "Sending DAR", "address", c.config.GRPC.Address, "name", status.Peer.Name)
+	printer.Infot(tag, "Sending DAR", "node", c.peer.Name, "address", c.peer.GRPCAddress, "level", c.peer.Level)
 
 	response, err := c.client.SendDAR(ctx, dar)
 	if err != nil {
@@ -99,6 +103,14 @@ func (c *Client) SendDAR() (string, error) {
 func (c *Client) GetBlocks(ctx context.Context, from, to uint64) ([]*types.Block, error) {
 	ctx, cancel := context.WithTimeout(c.ctx, c.config.GRPC.Timeout)
 	defer cancel()
+
+	printer.Infot(tag, "Getting blocks",
+		"node", c.peer.Name,
+		"address", c.peer.GRPCAddress, ""+
+			"level", c.peer.Level,
+		"from", from,
+		"to", to,
+	)
 
 	response, err := c.client.GetBlocks(ctx, &types.BlocksRequest{
 		From: from,
@@ -129,4 +141,87 @@ func (c *Client) SaveBlockHash(configPath, hash string) error {
 	printer.Infot(tag, "Block hash is saved and will be used in future requests")
 
 	return nil
+}
+
+func (c *Client) GetAuthenticationTable() (*types.AuthenticationTableResponse, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, c.config.GRPC.Timeout)
+	defer cancel()
+
+	printer.Infot(tag, "Getting authentication table",
+		"node", c.peer.Name,
+		"address", c.peer.GRPCAddress,
+		"level", c.peer.Level,
+	)
+
+	response, err := c.client.GetAuthenticationTable(ctx, &types.AuthenticationTableRequest{})
+	if err != nil {
+		printer.Errort(tag, err, "Failed to get authentication table")
+		return nil, err
+	}
+
+	return response, nil
+}
+
+func (c *Client) SendMessage(data []byte) (*types.Content, error) {
+	ctx, cancel := context.WithTimeout(c.ctx, c.config.GRPC.Timeout)
+	defer cancel()
+
+	printer.Infot(tag, "Sending message",
+		"node", c.peer.Name,
+		"address", c.peer.GRPCAddress,
+		"level", c.peer.Level,
+	)
+
+	hash, err := hex.DecodeString(c.config.BlockHash)
+	if err != nil {
+		printer.Errort(tag, err, "Failed to decode block hash")
+		return nil, err
+	}
+
+	content := &types.Content{
+		Data:      data,
+		BlockHash: hash,
+	}
+
+	pubKey, err := cipher.DeserializePublicKey(c.peer.DeviceID)
+	if err != nil {
+		printer.Errort(tag, err, "Failed to deserialize peer public key")
+		return nil, err
+	}
+
+	encryptedMessage, err := cipher.EncryptContent(pubKey, content)
+	if err != nil {
+		printer.Errort(tag, err, "Failed to encrypt message")
+		return nil, err
+	}
+
+	response, err := c.client.SendMessage(ctx, &types.Message{
+		SenderId:   c.cipher.SerializePublicKey(),
+		ReceiverId: c.peer.DeviceID,
+		Data:       encryptedMessage,
+	})
+	if err != nil {
+		printer.Errort(tag, err, "Failed to send message")
+		return nil, err
+	}
+
+	content, err = c.cipher.DecryptContent(response.Data)
+	if err != nil {
+		printer.Errort(tag, err, "Failed to decrypt message")
+		return nil, err
+	}
+
+	if !bytes.Equal(response.ReceiverId, c.cipher.SerializePublicKey()) {
+		err = errors.New("response receiver id is not equal to device id")
+		printer.Errort(tag, err)
+		return nil, err
+	}
+
+	if !bytes.Equal(response.SenderId, c.peer.DeviceID) {
+		err = errors.New("response sender id is not equal to peer id")
+		printer.Errort(tag, err)
+		return nil, err
+	}
+
+	return content, nil
 }

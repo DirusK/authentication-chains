@@ -20,7 +20,7 @@ service Node {
     rpc GetBlock (BlockRequest) returns (BlockResponse) {}
     rpc GetBlocks (BlocksRequest) returns (BlocksResponse) {}
     rpc GetPeers (PeersRequest) returns (PeersResponse) {}
-
+    rpc GetAuthenticationTable (AuthenticationTableRequest) returns (AuthenticationTableResponse) {}
 //    rpc FindBlock(FindBlockRequest) returns (FindBlockResponse) {}
 
     rpc SendMessage (Message) returns (Message) {}

@@ -1,8 +1,11 @@
 .PHONY: all proto build clean test
 
-BIN_NAME = ac
+BIN_NAME = authentication-chains
 GO_FILES = $(shell find . -name '*.go')
 PROTO_FILES = $(shell find ./proto -name '*.proto')
+
+CLIENT_NAME = finn
+NODE_NAME = alice
 
 all: build
 
@@ -34,11 +37,16 @@ start-tom:
 	go run . node start -c configs/nodes/tom.yaml
 
 keygen:
-	go run . client keygen -n finn
+	go run . client keygen -n $(CLIENT_NAME)
 
 send-dar:
-	go run . client send-dar -n finn
+	go run . client send-dar -n $(CLIENT_NAME)
 
 get-blocks:
-	go run . client get-blocks 0 100 -n finn
+	go run . client get-blocks 0 100 -n $(CLIENT_NAME)
 
+get-auth-table:
+	go run . client get-auth-table -n $(CLIENT_NAME)
+
+send-message:
+	go run . client send-message "Hello world!" -n $(CLIENT_NAME)

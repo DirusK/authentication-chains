@@ -19,7 +19,7 @@ var startCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		printer.Infot(helpers.TagCLI, "starting node")
 		app.New(helpers.Ctx, cfgPath).Run()
-		printer.Infot(helpers.TagCLI, "finished successfully")
+		printer.Infot(helpers.TagCLI, "node stopped")
 	},
 }
 

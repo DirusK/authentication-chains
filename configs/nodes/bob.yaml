@@ -14,7 +14,7 @@ logger:
   mode: "dev"
   log-level: "debug"
   log-format: "text"
-  with-caller: true
+  with-caller: false
   colored: true
 
 worker-pool:

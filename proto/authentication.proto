@@ -10,28 +10,38 @@ package blockchain;
 
 // DeviceAuthenticationRequest is a request for authentication
 message DeviceAuthenticationRequest {
-    bytes device_id = 1;
-    bytes cluster_head_id = 2;
-    bytes signature = 3;
+  bytes device_id = 1;
+  bytes cluster_head_id = 2;
+  bytes signature = 3;
 }
 
 message DeviceAuthenticationResponse {
-    bytes block_hash = 1;
+  bytes block_hash = 1;
 }
 
 // AuthenticationEntry is a single record in authentication table
 message AuthenticationEntry {
-    bytes device_id = 1;
-    bytes cluster_head_id = 2;
-    bytes block_hash = 3;
-    uint64 block_index = 4;
+  bytes device_id = 1;
+  bytes cluster_head_id = 2;
+  bytes block_hash = 3;
+  uint64 block_index = 4;
+}
+
+message AuthenticationEntries {
+  repeated AuthenticationEntry entries = 1;
 }
 
 message VerifyDeviceRequest {
-    bytes device_id = 1;
-    bytes block_hash = 2;
+  bytes device_id = 1;
+  bytes block_hash = 2;
 }
 
 message VerifyDeviceResponse {
-    bool is_verified = 1;
+  bool is_verified = 1;
+}
+
+message AuthenticationTableRequest {}
+
+message AuthenticationTableResponse {
+  map<uint32, AuthenticationEntries> table = 1;
 }

@@ -3,6 +3,7 @@ package cipher
 import (
 	"bytes"
 	"crypto"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
@@ -126,4 +127,18 @@ func DeserializePrivateKey(data []byte) (*rsa.PrivateKey, error) {
 	}
 
 	return privateKey, nil
+}
+
+func EncryptContent(pubKey *rsa.PublicKey, content *types.Content) ([]byte, error) {
+	data, err := proto.Marshal(content)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal content: %w", err)
+	}
+
+	cipherText, err := rsa.EncryptOAEP(sha256.New(), rand.Reader, pubKey, data, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return cipherText, nil
 }

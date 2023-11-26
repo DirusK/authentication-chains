@@ -61,7 +61,7 @@ func New(ctx context.Context, cfg config.Node, db *nutsdb.DB, workerPool *pond.W
 		cipher:        cipher,
 		chain:         chain,
 		db:            db,
-		logger:        logger.With("node"),
+		logger:        logger,
 		workerPool:    workerPool,
 		deviceID:      cipher.SerializePublicKey(),
 		clusterHead:   clusterHead,

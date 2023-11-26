@@ -11,6 +11,7 @@ import (
 
 	"github.com/DirusK/utils/printer"
 	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/sanity-io/litter"
 	"github.com/spf13/cobra"
 
@@ -49,9 +50,40 @@ var getBlocksCmd = &cobra.Command{
 		}
 
 		t := table.NewWriter()
-		t.AppendHeader(table.Row{"#", "Hash", "Previous Hash", "Timestamp", "DAR"})
+		t.AppendHeader(table.Row{"Index", "Hash", "Previous Hash", "Timestamp", "DAR"})
 		t.SetOutputMirror(cmd.OutOrStdout())
-		t.SetStyle(table.StyleColoredBright)
+		t.SetStyle(table.StyleColoredDark)
+		t.SetTitle("Blocks from %d to %d", from, to)
+		t.Style().Title.Align = text.AlignCenter
+		t.SortBy([]table.SortBy{{Name: "Index", Mode: table.Asc}})
+		t.SetColumnConfigs([]table.ColumnConfig{
+			{
+				Name:        "Index",
+				AlignHeader: text.AlignCenter,
+				Align:       text.AlignCenter,
+			},
+			{
+				Name:        "Hash",
+				AlignHeader: text.AlignCenter,
+				Align:       text.AlignLeft,
+			},
+			{
+				Name:        "Previous Hash",
+				AlignHeader: text.AlignCenter,
+				Align:       text.AlignLeft,
+			},
+			{
+				Name:        "Timestamp",
+				AlignHeader: text.AlignCenter,
+				Align:       text.AlignCenter,
+			},
+			{
+				Name:        "DAR",
+				AlignHeader: text.AlignCenter,
+				Align:       text.AlignLeft,
+			},
+		})
+
 		for _, block := range blocks {
 			dar := client.DeviceAuthenticationRequest{
 				DeviceID:      helpers.Truncate(fmt.Sprintf("%s", block.Dar.DeviceId), 30),
