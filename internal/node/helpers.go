@@ -485,7 +485,7 @@ func (n *Node) validateBlock(ctx context.Context, block *types.Block) error {
 		return fmt.Errorf("%w: invalid cluster head", ErrBlockValidation)
 	}
 
-	hash, err := n.cipher.HashBlock(block)
+	hash, err := cipher.HashBlock(block)
 	if err != nil {
 		return err
 	}

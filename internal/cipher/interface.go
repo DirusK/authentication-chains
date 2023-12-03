@@ -16,9 +16,11 @@ type Cipher interface {
 	GetPublicKey() *rsa.PublicKey
 	// SerializePublicKey serializes the public key.
 	SerializePublicKey() []byte
+	// ToStringPublicKey serializes the public key to string.
 	ToStringPublicKey() string
 	// SerializePrivateKey serializes the private key.
 	SerializePrivateKey() []byte
+	// ToStringPrivateKey serializes the private key to string.
 	ToStringPrivateKey() string
 	// GetPrivateKey returns the private rsa key.
 	GetPrivateKey() *rsa.PrivateKey
@@ -36,8 +38,4 @@ type Cipher interface {
 	Serialize() []byte
 	// SignDAR signs the given DeviceAuthenticationRequest.
 	SignDAR(dar *types.DeviceAuthenticationRequest) error
-	// HashBlock without a hash field.
-	HashBlock(block *types.Block) ([]byte, error)
-	// EncryptContent encrypts the given Content.
-	EncryptContent(content *types.Content) ([]byte, error)
 }

@@ -224,13 +224,3 @@ func (c cipher) HashBlock(block *types.Block) ([]byte, error) {
 
 	return result, nil
 }
-
-// EncryptContent encrypts the given Content.
-func (c cipher) EncryptContent(content *types.Content) ([]byte, error) {
-	data, err := proto.Marshal(content)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal content: %w", err)
-	}
-
-	return c.Encrypt(data)
-}

@@ -12,7 +12,7 @@ import (
 type (
 	// Blockchain - describe an interface for working with blockchain.
 	Blockchain interface {
-		// CreateBlock creates a new block from the mem-pool.
+		// CreateBlock creates a new block from provided device authentication request.
 		CreateBlock(dar *types.DeviceAuthenticationRequest) (*types.Block, error)
 		// AddBlock adds a block to the chain.
 		AddBlock(block *types.Block) error
@@ -22,10 +22,6 @@ type (
 		GetAllBlocks(from, to uint64) ([]*types.Block, error)
 		// GetLastBlock returns the last block of the chain.
 		GetLastBlock() *types.Block
-		// DeleteLastBlock deletes the last block from the chain.
-		DeleteLastBlock() error
-		// DeleteBlocks delete blocks from the chain.
-		DeleteBlocks(from, to uint64) error
 		// SetGenesisHash sets the genesis block hash.
 		SetGenesisHash(hash []byte)
 	}

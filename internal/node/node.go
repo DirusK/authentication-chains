@@ -121,6 +121,7 @@ func (n *Node) Sync(ctx context.Context) {
 	}
 }
 
+// Explore explores the cluster for new nodes.
 func (n *Node) Explore(ctx context.Context) {
 	ctx, logger := n.logger.StartTrace(ctx, "explore")
 	defer logger.FinishTrace()
@@ -139,10 +140,6 @@ func (n *Node) Explore(ctx context.Context) {
 		if peer.GrpcAddress == n.cfg.GRPC.Address {
 			continue
 		}
-
-		// if n.clusterNodes != nil && n.clusterNodes.Exists(peer) {
-		// 	continue
-		// }
 
 		client, err := initClient(ctx, peer.GrpcAddress)
 		if err != nil {

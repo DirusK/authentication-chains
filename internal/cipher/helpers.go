@@ -48,6 +48,26 @@ func Hash(data []byte) []byte {
 	return hash[:]
 }
 
+// HashBlock without a hash field.
+func HashBlock(block *types.Block) ([]byte, error) {
+	bc := &types.Block{
+		Hash:      nil,
+		PrevHash:  block.PrevHash,
+		Index:     block.Index,
+		Dar:       block.Dar,
+		Timestamp: block.Timestamp,
+	}
+
+	data, err := proto.Marshal(bc)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal block: %w", err)
+	}
+
+	result := Hash(data)
+
+	return result, nil
+}
+
 // VerifyDAR verifies the given DeviceAuthenticationRequest.
 func VerifyDAR(dar *types.DeviceAuthenticationRequest) error {
 	copyDar := &types.DeviceAuthenticationRequest{

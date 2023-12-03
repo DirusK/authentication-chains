@@ -11,7 +11,7 @@ const (
 	// BucketBlocks is the name of the bucket that will store our blocks
 	BucketBlocks = "blocks"
 	// BucketIndexes is the name of the bucket that will store hashes.
-	BucketIndexes = "hashes"
+	BucketIndexes = "indexes"
 	// BucketAuthenticationTable is the name of the bucket that will store authentication table.
 	BucketAuthenticationTable = "authentication-table"
 	// BucketCipher is the name of the bucket that will store cipher.

@@ -52,25 +52,6 @@ func (n *Node) GetBlock(ctx context.Context, request *types.BlockRequest) (*type
 	}, nil
 }
 
-// func (n *Node) FindBlock(ctx context.Context, request *types.FindBlockRequest) (*types.FindBlockResponse, error) {
-// 	ctx, logger := n.logger.StartTrace(ctx, "find block")
-// 	defer logger.FinishTrace()
-//
-// 	block, err := n.chain.GetBlock(request.Index)
-// 	if err == nil {
-// 		return &types.FindBlockResponse{Block: block}, nil
-// 	}
-//
-// 	for _, peer := range n.childrenNodes.GetAll() {
-// 		response, err := peer.Client.FindBlock(ctx, request)
-// 		if err == nil {
-// 			return &types.FindBlockResponse{Block: response.Block}, nil
-// 		}
-// 	}
-//
-// 	return nil, ErrNotFoundBlock
-// }
-
 func (n *Node) GetBlocks(ctx context.Context, request *types.BlocksRequest) (*types.BlocksResponse, error) {
 	ctx, logger := n.logger.StartTrace(ctx, "get blocks")
 	defer logger.FinishTrace()
